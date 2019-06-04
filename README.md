@@ -2,7 +2,7 @@
 
 Elysium for mobile.
 
-## Getting Started
+## Set up
 
-For help getting started with Flutter, view our online
-[documentation](https://flutter.io/).
+Download google-services.json from Flutter into android/app/.
+
