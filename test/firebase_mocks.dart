@@ -112,9 +112,15 @@ class MockCollectionReference extends Mock implements CollectionReference {
         })
         .map((entry) => MockDocumentSnapshot(entry.key, entry.value))
         .toList();
-    print('matching docs');
-    print(matchingDocuments);
     return MockQuery(matchingDocuments);
+  }
+
+  @override
+  Stream<QuerySnapshot> snapshots() {
+    final documents = root.entries
+        .map((entry) => MockDocumentSnapshot(entry.key, entry.value))
+        .toList();
+    return Stream.fromIterable([MockSnapshot(documents)]);
   }
 }
 
