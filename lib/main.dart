@@ -1,4 +1,3 @@
-
 import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
@@ -7,12 +6,16 @@ import 'package:google_sign_in/google_sign_in.dart';
 
 import 'chatview.dart';
 
-final GoogleSignIn _googleSignIn = GoogleSignIn();
-final FirebaseAuth _auth = FirebaseAuth.instance;
-
 void main() => runApp(new MyApp());
 
 class MyApp extends StatelessWidget {
+  final FirebaseAuth _auth;
+  final GoogleSignIn _googleSignIn;
+
+  MyApp() : this.withParameters(FirebaseAuth.instance, GoogleSignIn());
+
+  MyApp.withParameters(final this._auth, final this._googleSignIn);
+
   @override
   Widget build(BuildContext context) {
     return new MaterialApp(
@@ -20,15 +23,17 @@ class MyApp extends StatelessWidget {
       theme: new ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: new MyHomePage(title: 'Elysium'),
+      home: new MyHomePage(title: 'Elysium', auth: _auth, googleSignIn: _googleSignIn,),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+  MyHomePage({Key key, this.title, this.auth, this.googleSignIn}) : super(key: key);
 
   final String title;
+  final FirebaseAuth auth;
+  final GoogleSignIn googleSignIn;
 
   @override
   _MyHomePageState createState() => new _MyHomePageState();
@@ -41,8 +46,11 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
 
-    _auth.onAuthStateChanged.listen((user) {
-      signedIn = user != null;
+    widget.auth.onAuthStateChanged.listen((user) {
+      print('Listening to auth state changes.');
+      setState(() {
+        signedIn = user != null;
+      });
     });
   }
 
@@ -52,26 +60,26 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: new AppBar(
         title: new Text(widget.title),
       ),
-      body: new Center(
-        child: new Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (signedIn)
-              RaisedButton(
-                child: Text('Sign in'),
-                onPressed: _handleSignIn,
-              )
-            else
-              ChatView()
-          ],
-        ),
-      ),
+      body: !signedIn
+          ? Center(
+              child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                RaisedButton(
+                    child: Text('Sign in'),
+                    onPressed: () {
+                      _handleSignIn(widget.auth, widget.googleSignIn);
+                    })
+              ],
+            ))
+          : ChatView(),
     );
   }
 }
 
-Future<FirebaseUser> _handleSignIn() async {
-  final GoogleSignInAccount googleUser = await _googleSignIn.signIn();
+Future<FirebaseUser> _handleSignIn(FirebaseAuth auth, GoogleSignIn googleSignIn) async {
+  print('Signing in...');
+  final GoogleSignInAccount googleUser = await googleSignIn.signIn();
   final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
 
   final AuthCredential credential = GoogleAuthProvider.getCredential(
@@ -79,7 +87,7 @@ Future<FirebaseUser> _handleSignIn() async {
     idToken: googleAuth.idToken,
   );
 
-  final FirebaseUser user = await _auth.signInWithCredential(credential);
+  final FirebaseUser user = await auth.signInWithCredential(credential);
   print("signed in " + user.displayName);
   return user;
 }
