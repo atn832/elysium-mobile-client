@@ -1,4 +1,3 @@
-
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -95,19 +94,26 @@ class MockCollectionReference extends Mock implements CollectionReference {
   @override
   Query where(String field,
       {isEqualTo,
-        isLessThan,
-        isLessThanOrEqualTo,
-        isGreaterThan,
-        isGreaterThanOrEqualTo,
-        arrayContains,
-        bool isNull}) {
+      isLessThan,
+      isLessThanOrEqualTo,
+      isGreaterThan,
+      isGreaterThanOrEqualTo,
+      arrayContains,
+      bool isNull}) {
     final matchingDocuments = root.entries
         .where((entry) {
-      final document = entry.value;
-      return document[field] == isEqualTo;
-    })
+          final document = entry.value;
+          if (isEqualTo != null) {
+            return document[field] == isEqualTo;
+          } else if (isGreaterThan != null) {
+            Comparable fieldValue = document[field];
+            return fieldValue.compareTo(isGreaterThan) > 0;
+          }
+        })
         .map((entry) => MockDocumentSnapshot(entry.key, entry.value))
         .toList();
+    print('matching docs');
+    print(matchingDocuments);
     return MockQuery(matchingDocuments);
   }
 }
@@ -120,6 +126,11 @@ class MockQuery extends Mock implements Query {
   @override
   Future<QuerySnapshot> getDocuments({Source source = Source.serverAndCache}) {
     return Future.value(MockSnapshot(documents));
+  }
+
+  @override
+  Stream<QuerySnapshot> snapshots() {
+    return Stream.fromIterable([MockSnapshot(documents)]);
   }
 }
 
