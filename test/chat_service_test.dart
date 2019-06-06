@@ -29,6 +29,11 @@ void main() {
         ChatService.withParameters(firebase, MockFirebaseAuth(), now);
     final users = await service.getUsers().first;
     expect(users.length, equals(1));
+    expect(users[0].uid, equals('z'));
     expect(users[0].name, equals('Bob'));
+
+    final userMap = await service.getUserMap().first;
+    expect(userMap.length, equals(1));
+    expect(userMap['z'].name, equals('Bob'));
   });
 }

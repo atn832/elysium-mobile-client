@@ -38,10 +38,23 @@ class ChatService {
             handleData: (QuerySnapshot data, EventSink<List<User>> sink) {
       final users = data.documents
           .map((d) => User()
+            ..uid = d.documentID
             ..name = d.data['name'] as String
             ..timezone = d.data['timezone'] as String)
           .toList();
       sink.add(users);
     }));
+  }
+
+  Stream<Map<String, User>> getUserMap() {
+    return getUsers().transform(StreamTransformer.fromHandlers(
+      handleData: (List<User> data, EventSink<Map<String, User>> sink) {
+        final result = Map<String, User>();
+        for (final user in data) {
+          result[user.uid] = user;
+        }
+        sink.add(result);
+      }
+    ));
   }
 }
