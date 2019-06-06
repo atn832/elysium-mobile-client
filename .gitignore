@@ -8,5 +8,8 @@ build/
 
 .flutter-plugins
 
+# Android Studio settings
+.idea
+
 # Firebase key
 google-services.json

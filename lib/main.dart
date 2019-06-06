@@ -23,13 +23,18 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(title: 'Elysium', auth: _auth, googleSignIn: _googleSignIn,),
+      home: MyHomePage(
+        title: 'Elysium',
+        auth: _auth,
+        googleSignIn: _googleSignIn,
+      ),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title, this.auth, this.googleSignIn}) : super(key: key);
+  MyHomePage({Key key, this.title, this.auth, this.googleSignIn})
+      : super(key: key);
 
   final String title;
   final FirebaseAuth auth;
@@ -78,7 +83,8 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
-Future<FirebaseUser> _handleSignIn(FirebaseAuth auth, GoogleSignIn googleSignIn) async {
+Future<FirebaseUser> _handleSignIn(
+    FirebaseAuth auth, GoogleSignIn googleSignIn) async {
   final GoogleSignInAccount googleUser = await googleSignIn.signIn();
   final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
 
