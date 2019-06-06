@@ -16,16 +16,22 @@ import 'package:mockito/mockito.dart';
 
 void main() {
   testWidgets('signs in', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
     await tester.pumpWidget(MyApp.withParameters(MockFirebaseAuth(), MockGoogleSignIn()));
 
-    // Verify that our counter starts at 0.
     expect(find.text('Sign in'), findsOneWidget);
     expect(find.text('hello'), findsNothing);
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.pump();
     await tester.tap(find.text('Sign in'));
+    await tester.pump();
+
+    expect(find.text('Sign in'), findsNothing);
+  });
+
+  testWidgets('displays messages', (WidgetTester tester) async {
+    // Load the application in signed in state.
+    final auth = MockFirebaseAuth();
+    await tester.pumpWidget(MyApp.withParameters(auth, null));
+    await auth.signInWithCredential(null);
     await tester.pump();
 
     expect(find.text('Sign in'), findsNothing);
@@ -37,7 +43,6 @@ class MockFirebaseAuth extends Mock implements FirebaseAuth {
 
   @override
   Future<FirebaseUser> signInWithCredential(AuthCredential credential) {
-    print('Fake sign in.');
     final user = MockFirebaseUser();
     stateChangedStreamController.add(user);
     return Future.value(user);

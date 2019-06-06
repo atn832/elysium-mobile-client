@@ -47,9 +47,10 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
 
     widget.auth.onAuthStateChanged.listen((user) {
-      print('Listening to auth state changes.');
+      print(user);
       setState(() {
         signedIn = user != null;
+        print(signedIn);
       });
     });
   }
@@ -78,7 +79,6 @@ class _MyHomePageState extends State<MyHomePage> {
 }
 
 Future<FirebaseUser> _handleSignIn(FirebaseAuth auth, GoogleSignIn googleSignIn) async {
-  print('Signing in...');
   final GoogleSignInAccount googleUser = await googleSignIn.signIn();
   final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
 
@@ -88,6 +88,5 @@ Future<FirebaseUser> _handleSignIn(FirebaseAuth auth, GoogleSignIn googleSignIn)
   );
 
   final FirebaseUser user = await auth.signInWithCredential(credential);
-  print("signed in " + user.displayName);
   return user;
 }
