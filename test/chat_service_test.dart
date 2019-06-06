@@ -11,12 +11,17 @@ void main() {
     final firebase = MockFirestoreInstance();
     await firebase.collection('messages').add({
       'content': 'hello!',
+      'uid': 'z',
       'timestamp': now,
+    });
+    await firebase.collection('users').add({
+      'name': 'Bob',
+      'timezone': 'Europe/London',
     });
     final service =
         ChatService.withParameters(firebase, MockFirebaseAuth(), now);
     final messages = await service.getMessages().first;
-    expect(messages, equals(['hello!']));
+    expect(messages, equals(['Bob: hello!']));
   });
 
   test('returns users', () async {

@@ -20,15 +20,22 @@ class ChatService {
   }
 
   Stream<List<String>> getMessages() {
-    return instance
-        .collection('messages')
-        .where('timestamp', isGreaterThan: from)
-        .snapshots()
-        .transform(StreamTransformer.fromHandlers(
-            handleData: (QuerySnapshot data, EventSink<List<String>> sink) {
-      final messages =
-          data.documents.map((d) => d.data['content'] as String).toList();
-      sink.add(messages);
+    return getUserMap().transform(StreamTransformer.fromHandlers(
+        handleData: (Map<String, User> users, EventSink<List<String>> sink)
+    {
+      print('transforming users');
+      instance
+          .collection('messages')
+          .where('timestamp', isGreaterThan: from)
+          .snapshots()
+          .forEach((QuerySnapshot data) {
+            final messages =
+            data.documents.map((d) {
+              final userName = users[d.data['uid']].name;
+              return userName + ": " + (d.data['content'] as String);
+            }).toList();
+            sink.add(messages);
+          });
     }));
   }
 
