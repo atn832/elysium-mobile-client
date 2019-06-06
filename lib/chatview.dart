@@ -4,6 +4,12 @@ import 'package:flutter/widgets.dart';
 import 'chatservice.dart';
 
 class ChatView extends StatefulWidget {
+  final ChatService _service;
+
+  ChatView() : this.withParameters(ChatService());
+
+  ChatView.withParameters(this._service);
+
   @override
   State<StatefulWidget> createState() {
     return _ChatViewState();
@@ -17,7 +23,7 @@ class _ChatViewState extends State<ChatView> {
       Expanded(
           child: StreamBuilder<List<String>>(
               initialData: ['test'],
-              stream: ChatService.instance.getMessages(),
+              stream: widget._service.getMessages(),
               builder:
                   (BuildContext context, AsyncSnapshot<List<String>> snapshot) {
                 switch (snapshot.connectionState) {

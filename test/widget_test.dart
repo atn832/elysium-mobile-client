@@ -6,6 +6,8 @@
 
 import 'dart:async';
 
+import 'package:elysium/chatservice.dart';
+import 'package:elysium/chatview.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -28,14 +30,20 @@ void main() {
   });
 
   testWidgets('displays messages', (WidgetTester tester) async {
-    // Load the application in signed in state.
-    final auth = MockFirebaseAuth();
-    await tester.pumpWidget(MyApp.withParameters(auth, null));
-    await auth.signInWithCredential(null);
+    await tester.pumpWidget(MaterialApp(
+        home: ChatView.withParameters(MockChatService())));
     await tester.pump();
 
-    expect(find.text('Sign in'), findsNothing);
+    expect(find.text('hello!'), findsOneWidget);
   });
+}
+
+class MockChatService extends Mock implements ChatService {
+  Stream<List<String>> getMessages() {
+    return Stream.fromIterable([
+      ['hello!']
+    ]);
+  }
 }
 
 class MockFirebaseAuth extends Mock implements FirebaseAuth {

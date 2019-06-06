@@ -18,12 +18,12 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return new MaterialApp(
+    return MaterialApp(
       title: 'Elysium',
-      theme: new ThemeData(
+      theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: new MyHomePage(title: 'Elysium', auth: _auth, googleSignIn: _googleSignIn,),
+      home: MyHomePage(title: 'Elysium', auth: _auth, googleSignIn: _googleSignIn,),
     );
   }
 }
