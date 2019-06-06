@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import 'user.dart';
+
 class ChatService {
   final Firestore instance;
   final FirebaseAuth authInstance;
@@ -27,6 +29,19 @@ class ChatService {
       final messages =
           data.documents.map((d) => d.data['content'] as String).toList();
       sink.add(messages);
+    }));
+  }
+
+  Stream<List<User>> getUsers() {
+    return instance.collection('users').snapshots().transform(
+        StreamTransformer.fromHandlers(
+            handleData: (QuerySnapshot data, EventSink<List<User>> sink) {
+      final users = data.documents
+          .map((d) => User()
+            ..name = d.data['name'] as String
+            ..timezone = d.data['timezone'] as String)
+          .toList();
+      sink.add(users);
     }));
   }
 }
