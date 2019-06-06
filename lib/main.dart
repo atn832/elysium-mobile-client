@@ -5,6 +5,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
+import 'chatview.dart';
+
 final GoogleSignIn _googleSignIn = GoogleSignIn();
 final FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -33,6 +35,17 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  var signedIn = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _auth.onAuthStateChanged.listen((user) {
+      signedIn = user != null;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
@@ -42,11 +55,14 @@ class _MyHomePageState extends State<MyHomePage> {
       body: new Center(
         child: new Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            RaisedButton(
-              child: Text('Sign in'),
-              onPressed: _handleSignIn,
-            )
+          children: [
+            if (signedIn)
+              RaisedButton(
+                child: Text('Sign in'),
+                onPressed: _handleSignIn,
+              )
+            else
+              ChatView()
           ],
         ),
       ),
