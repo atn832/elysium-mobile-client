@@ -61,4 +61,13 @@ class ChatService {
       sink.add(result);
     }));
   }
+
+  Future<void> sendMessage(String message, [DateTime now]) async {
+    final user = await authInstance.currentUser();
+    return instance.collection('messages').add({
+      'uid': user.uid,
+      'content': message,
+      'timestamp': now ?? DateTime.now(),
+    });
+  }
 }
