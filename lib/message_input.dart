@@ -27,18 +27,20 @@ class _MessageInputState extends State<MessageInput> {
       Expanded(
           child: TextField(
         controller: _controller,
-        onSubmitted: (String value) {
-          print('On Submit');
-        },
+        onSubmitted: sendMessage
       )),
       IconButton(
         icon: Icon(Icons.send),
         onPressed: () {
           final message = _controller.text;
-          _controller.clear();
-          widget._chatService.sendMessage(message);
+          sendMessage(message);
         },
       )
     ]);
+  }
+
+  sendMessage(String message) async {
+    _controller.clear();
+    return widget._chatService.sendMessage(message);
   }
 }
