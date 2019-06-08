@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
 import 'chatservice.dart';
+import 'message_input.dart';
 
 class ChatView extends StatefulWidget {
   final ChatService _service;
@@ -35,7 +36,8 @@ class _ChatViewState extends State<ChatView> {
                           return Text(snapshot.data[index]);
                         }));
             }
-          })
+          }),
+      MessageInput()
     ]);
   }
 }

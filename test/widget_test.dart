@@ -8,6 +8,7 @@ import 'dart:async';
 
 import 'package:elysium/chatservice.dart';
 import 'package:elysium/chatview.dart';
+import 'package:elysium/message_input.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -31,11 +32,12 @@ void main() {
   });
 
   testWidgets('displays messages', (WidgetTester tester) async {
-    await tester.pumpWidget(
-        MaterialApp(home: ChatView.withParameters(MockChatService())));
+    await tester.pumpWidget(MaterialApp(
+        home: Scaffold(body: ChatView.withParameters(MockChatService()))));
     await tester.pump();
 
     expect(find.text('hello!'), findsOneWidget);
+    expect(find.byType(MessageInput), findsOneWidget);
   });
 }
 
