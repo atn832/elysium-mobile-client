@@ -18,6 +18,8 @@ class ChatView extends StatefulWidget {
 }
 
 class _ChatViewState extends State<ChatView> {
+  ScrollController _controller = ScrollController();
+
   @override
   Widget build(BuildContext context) {
     return Column(children: [
@@ -29,8 +31,14 @@ class _ChatViewState extends State<ChatView> {
               case ConnectionState.waiting:
                 return CircularProgressIndicator();
               default:
+                // Scroll down on redraw.
+                WidgetsBinding.instance.addPostFrameCallback(
+                        (Duration timeStamp) {
+                  scrollDown();
+                });
                 return Expanded(
                     child: ListView.builder(
+                        controller: _controller,
                         itemCount: snapshot.data.length,
                         itemBuilder: (BuildContext context, int index) {
                           return Container(
@@ -41,7 +49,13 @@ class _ChatViewState extends State<ChatView> {
           }),
       Divider(),
       Container(
-          padding: EdgeInsets.all(16), child: MessageInput(widget._service))
+        margin: EdgeInsets.all(16),
+        child: MessageInput(widget._service),
+      )
     ]);
+  }
+
+  scrollDown() {
+    _controller.jumpTo(_controller.position.maxScrollExtent);
   }
 }
