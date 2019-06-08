@@ -25,10 +25,7 @@ class _MessageInputState extends State<MessageInput> {
   Widget build(BuildContext context) {
     return Row(children: [
       Expanded(
-          child: TextField(
-        controller: _controller,
-        onSubmitted: sendMessage
-      )),
+          child: TextField(controller: _controller, onSubmitted: sendMessage)),
       IconButton(
         icon: Icon(Icons.send),
         onPressed: () {

@@ -33,11 +33,15 @@ class _ChatViewState extends State<ChatView> {
                     child: ListView.builder(
                         itemCount: snapshot.data.length,
                         itemBuilder: (BuildContext context, int index) {
-                          return Text(snapshot.data[index]);
+                          return Container(
+                              child: Text(snapshot.data[index]),
+                              padding: EdgeInsets.symmetric(horizontal: 16));
                         }));
             }
           }),
-      MessageInput(widget._service)
+      Divider(),
+      Container(
+          padding: EdgeInsets.all(16), child: MessageInput(widget._service))
     ]);
   }
 }
