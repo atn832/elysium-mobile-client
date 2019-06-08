@@ -37,7 +37,7 @@ class _ChatViewState extends State<ChatView> {
                         }));
             }
           }),
-      MessageInput()
+      MessageInput(widget._service)
     ]);
   }
 }
