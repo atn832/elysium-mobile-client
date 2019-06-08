@@ -21,21 +21,19 @@ class ChatService {
 
   Stream<List<String>> getMessages() {
     return getUserMap().transform(StreamTransformer.fromHandlers(
-        handleData: (Map<String, User> users, EventSink<List<String>> sink)
-    {
+        handleData: (Map<String, User> users, EventSink<List<String>> sink) {
       print('transforming users');
       instance
           .collection('messages')
           .where('timestamp', isGreaterThan: from)
           .snapshots()
           .forEach((QuerySnapshot data) {
-            final messages =
-            data.documents.map((d) {
-              final userName = users[d.data['uid']].name;
-              return userName + ": " + (d.data['content'] as String);
-            }).toList();
-            sink.add(messages);
-          });
+        final messages = data.documents.map((d) {
+          final userName = users[d.data['uid']].name;
+          return userName + ": " + (d.data['content'] as String);
+        }).toList();
+        sink.add(messages);
+      });
     }));
   }
 
@@ -55,13 +53,12 @@ class ChatService {
 
   Stream<Map<String, User>> getUserMap() {
     return getUsers().transform(StreamTransformer.fromHandlers(
-      handleData: (List<User> data, EventSink<Map<String, User>> sink) {
-        final result = Map<String, User>();
-        for (final user in data) {
-          result[user.uid] = user;
-        }
-        sink.add(result);
+        handleData: (List<User> data, EventSink<Map<String, User>> sink) {
+      final result = Map<String, User>();
+      for (final user in data) {
+        result[user.uid] = user;
       }
-    ));
+      sink.add(result);
+    }));
   }
 }
