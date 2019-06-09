@@ -11,7 +11,8 @@ final expectedStateAfterSend = """{
   "users": {
     "aabbcc": {
       "name": "Bob",
-      "timezone": "Europe/London"
+      "timezone": "Europe/London",
+      "lastTalked": "2019-06-06T00:00:00.000"
     }
   },
   "messages": {

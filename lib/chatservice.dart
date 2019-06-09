@@ -79,11 +79,14 @@ class ChatService {
   }
 
   Future<void> sendMessage(String message, [DateTime now]) async {
-    return instance.collection('messages').add({
+    await instance.collection('messages').add({
       'uid': await myUid,
       'content': message,
       'timestamp': now ?? DateTime.now(),
     });
+    await instance.collection('users').document(await myUid).setData({
+      'lastTalked': now,
+    }, merge: true);
   }
 
   Future<String> get myUid async => (await authInstance.currentUser()).uid;
