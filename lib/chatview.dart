@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'chatservice.dart';
 import 'message.dart';
 import 'message_input.dart';
+import 'message_widget.dart';
 
 class ChatView extends StatefulWidget {
   final ChatService _service;
@@ -44,9 +45,7 @@ class _ChatViewState extends State<ChatView> {
                             snapshot.data != null ? snapshot.data.length : 0,
                         itemBuilder: (BuildContext context, int index) {
                           return Container(
-                              child: Text(snapshot.data[index].author.name +
-                                  ': ' +
-                                  snapshot.data[index].message),
+                              child: MessageWidget(snapshot.data[index]),
                               padding: EdgeInsets.symmetric(horizontal: 16));
                         }));
             }
