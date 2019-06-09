@@ -39,7 +39,7 @@ class _ChatViewState extends State<ChatView> {
                 return Expanded(
                     child: ListView.builder(
                         controller: _controller,
-                        itemCount: snapshot.data.length,
+                        itemCount: snapshot.data != null ? snapshot.data.length : 0,
                         itemBuilder: (BuildContext context, int index) {
                           return Container(
                               child: Text(snapshot.data[index]),
