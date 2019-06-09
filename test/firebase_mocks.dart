@@ -192,6 +192,8 @@ class MockDocumentReference extends Mock implements DocumentReference {
           default:
             throw Exception('Not implemented');
         }
+      } else if (value is DateTime) {
+        root[key] = Timestamp.fromDate(value);
       } else {
         root[key] = value;
       }
