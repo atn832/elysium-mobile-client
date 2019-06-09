@@ -14,7 +14,7 @@ void main() {
     await tester.enterText(find.byType(TextField), 'yes');
     expect(find.text('yes'), findsOneWidget);
 
-    await tester.tap(find.byType(IconButton));
+    await tester.tap(find.byIcon(Icons.send));
     verify(chatService.sendMessage('yes'));
     expect(find.text('yes'), findsNothing);
   });
