@@ -1,9 +1,13 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:elysium/chatservice.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mockito/mockito.dart';
 
 import 'firebase_auth_mocks.dart';
 import 'firebase_mocks.dart';
+import 'firebase_storage_mocks.dart';
 
 final now = DateTime(2019, 06, 06);
 
@@ -37,7 +41,8 @@ void main() {
     await firebase.collection('users').document(uid).setData({
       'name': 'Bob',
     });
-    final service = ChatService.withParameters(firebase, auth, now);
+    final service =
+        ChatService.withParameters(firebase, auth, MockFirebaseStorage(), now);
     final messages = await service.getMessages().first;
     expect(messages, equals(['Bob: hello!']));
   });
@@ -51,7 +56,7 @@ void main() {
       'timezone': 'Europe/London',
     });
     final service =
-        ChatService.withParameters(firebase, auth, now);
+        ChatService.withParameters(firebase, auth, MockFirebaseStorage(), now);
     final users = await service.getUsers().first;
     expect(users.length, equals(1));
     expect(users[0].uid, equals(uid));
@@ -70,7 +75,8 @@ void main() {
       'name': 'Bob',
       'timezone': 'Europe/London',
     });
-    final service = ChatService.withParameters(firebase, auth, now);
+    final service =
+        ChatService.withParameters(firebase, auth, MockFirebaseStorage(), now);
     await service.sendMessage('yes', now);
     expect(firebase.dump(), equals(expectedStateAfterSend));
   });
@@ -94,8 +100,34 @@ void main() {
       'timezone': 'Europe/London',
       'lastTalked': Timestamp.fromDate(now),
     });
-    final service = ChatService.withParameters(firebase, auth, now);
+    final service =
+        ChatService.withParameters(firebase, auth, MockFirebaseStorage(), now);
     final messages = await service.getMessages().first;
     expect(messages, equals(['Bob: newer']));
+  });
+
+  test('sends images', () async {
+    final firebase = MockFirestoreInstance();
+    final auth = MockFirebaseAuth(signedIn: true);
+    final uid = (await auth.currentUser()).uid;
+    await firebase.collection('users').document(uid).setData({
+      'name': 'Bob',
+      'timezone': 'Europe/London',
+      'lastTalked': Timestamp.fromDate(now),
+    });
+    final storage = MockFirebaseStorage();
+    final service = ChatService.withParameters(firebase, auth, storage, now);
+    final image =
+        File('/storage/emulated/0/DCIM/Camera/IMG_20190609_144619.jpg');
+    await service.sendImage(image);
+
+    // Check that the gs:// link was sent.
+    final messages = await service.getMessages().first;
+    expect(
+        messages, equals(['Bob: gs://some-bucket//IMG_20190609_144619.jpg']));
+    // Verify that the image was put.
+    final fileRef = (storage.ref().child('IMG_20190609_144619.jpg'))
+        as MockStorageReference;
+    expect(fileRef.storedFile, equals(image));
   });
 }

@@ -1,5 +1,7 @@
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:image_picker/image_picker.dart';
 
 import 'chatservice.dart';
 
@@ -35,6 +37,15 @@ class _MessageInputState extends State<MessageInput> {
             labelText: 'Envoyer...',
           ),
         )),
+        IconButton(
+          icon: Icon(Icons.image),
+          onPressed: () async {
+            final image =
+                await ImagePicker.pickImage(source: ImageSource.gallery);
+            if (image == null) return;
+            widget._chatService.sendImage(image);
+          },
+        ),
         IconButton(
           icon: Icon(Icons.send),
           onPressed: () {

@@ -1,21 +1,25 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 import 'user.dart';
 
 class ChatService {
   final Firestore instance;
   final FirebaseAuth authInstance;
+  final FirebaseStorage storage;
   final DateTime now;
   Future<DateTime> from;
 
   ChatService()
-      : this.withParameters(
-            Firestore.instance, FirebaseAuth.instance, DateTime.now());
+      : this.withParameters(Firestore.instance, FirebaseAuth.instance,
+            FirebaseStorage.instance, DateTime.now());
 
-  ChatService.withParameters(this.instance, this.authInstance, this.now) {
+  ChatService.withParameters(
+      this.instance, this.authInstance, this.storage, this.now) {
     from = getUserMap().first.then((users) async {
       final lastTalked = users[await myUid].lastTalked;
       if (lastTalked != null) {
@@ -79,14 +83,28 @@ class ChatService {
   }
 
   Future<void> sendMessage(String message, [DateTime now]) async {
+    final timestamp = now ?? DateTime.now();
     await instance.collection('messages').add({
       'uid': await myUid,
       'content': message,
-      'timestamp': now ?? DateTime.now(),
+      'timestamp': timestamp,
     });
     await instance.collection('users').document(await myUid).setData({
-      'lastTalked': now,
+      'lastTalked': timestamp,
     }, merge: true);
+  }
+
+  Future<void> sendImage(File image) async {
+    final filename = image.path
+        .substring(image.path.lastIndexOf('/') + 1)
+        .replaceAll(' ', '_');
+    print(filename);
+    final StorageReference storageRef = storage.ref().child(filename);
+    // TODO: show progress and success.
+    final task = storageRef.putFile(image);
+    await task.onComplete;
+    return sendMessage(
+        'gs://' + await storageRef.getBucket() + '/' + storageRef.path);
   }
 
   Future<String> get myUid async => (await authInstance.currentUser()).uid;
