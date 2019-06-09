@@ -32,8 +32,8 @@ class _ChatViewState extends State<ChatView> {
                 return CircularProgressIndicator();
               default:
                 // Scroll down on redraw.
-                WidgetsBinding.instance.addPostFrameCallback(
-                        (Duration timeStamp) {
+                WidgetsBinding.instance
+                    .addPostFrameCallback((Duration timeStamp) {
                   scrollDown();
                 });
                 return Expanded(

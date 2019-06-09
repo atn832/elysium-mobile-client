@@ -52,10 +52,8 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
 
     widget.auth.onAuthStateChanged.listen((user) {
-      print(user);
       setState(() {
         signedIn = user != null;
-        print(signedIn);
       });
     });
   }

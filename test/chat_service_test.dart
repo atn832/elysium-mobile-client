@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:elysium/chatservice.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -7,6 +8,12 @@ import 'firebase_mocks.dart';
 final now = DateTime(2019, 06, 06);
 
 final expectedStateAfterSend = """{
+  "users": {
+    "aabbcc": {
+      "name": "Bob",
+      "timezone": "Europe/London"
+    }
+  },
   "messages": {
     "z": {
       "uid": "aabbcc",
@@ -19,44 +26,75 @@ final expectedStateAfterSend = """{
 void main() {
   test('returns messages', () async {
     final firebase = MockFirestoreInstance();
+    final auth = MockFirebaseAuth(signedIn: true);
+    final uid = (await auth.currentUser()).uid;
     await firebase.collection('messages').add({
       'content': 'hello!',
-      'uid': 'z',
+      'uid': uid,
       'timestamp': now,
     });
-    await firebase.collection('users').add({
+    await firebase.collection('users').document(uid).setData({
       'name': 'Bob',
-      'timezone': 'Europe/London',
     });
-    final service =
-        ChatService.withParameters(firebase, MockFirebaseAuth(), now);
+    final service = ChatService.withParameters(firebase, auth, now);
     final messages = await service.getMessages().first;
     expect(messages, equals(['Bob: hello!']));
   });
 
   test('returns users', () async {
     final firebase = MockFirestoreInstance();
-    await firebase.collection('users').add({
+    final auth = MockFirebaseAuth(signedIn: true);
+    final uid = (await auth.currentUser()).uid;
+    await firebase.collection('users').document(uid).setData({
       'name': 'Bob',
       'timezone': 'Europe/London',
     });
     final service =
-        ChatService.withParameters(firebase, MockFirebaseAuth(), now);
+        ChatService.withParameters(firebase, auth, now);
     final users = await service.getUsers().first;
     expect(users.length, equals(1));
-    expect(users[0].uid, equals('z'));
+    expect(users[0].uid, equals(uid));
     expect(users[0].name, equals('Bob'));
 
     final userMap = await service.getUserMap().first;
     expect(userMap.length, equals(1));
-    expect(userMap['z'].name, equals('Bob'));
+    expect(userMap[uid].name, equals('Bob'));
   });
 
   test('sends messages', () async {
     final firebase = MockFirestoreInstance();
     final auth = MockFirebaseAuth(signedIn: true);
+    final uid = (await auth.currentUser()).uid;
+    await firebase.collection('users').document(uid).setData({
+      'name': 'Bob',
+      'timezone': 'Europe/London',
+    });
     final service = ChatService.withParameters(firebase, auth, now);
     await service.sendMessage('yes', now);
     expect(firebase.dump(), equals(expectedStateAfterSend));
+  });
+
+  test('listens to messages from last talked', () async {
+    final firebase = MockFirestoreInstance();
+    final auth = MockFirebaseAuth(signedIn: true);
+    final uid = (await auth.currentUser()).uid;
+    await firebase.collection('messages').add({
+      'content': 'hello!',
+      'uid': uid,
+      'timestamp': now.subtract(Duration(minutes: 3)),
+    });
+    await firebase.collection('messages').add({
+      'content': 'newer',
+      'uid': uid,
+      'timestamp': now,
+    });
+    await firebase.collection('users').document(uid).setData({
+      'name': 'Bob',
+      'timezone': 'Europe/London',
+      'lastTalked': Timestamp.fromDate(now),
+    });
+    final service = ChatService.withParameters(firebase, auth, now);
+    final messages = await service.getMessages().first;
+    expect(messages, equals(['Bob: newer']));
   });
 }
