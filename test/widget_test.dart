@@ -2,7 +2,9 @@ import 'dart:async';
 
 import 'package:elysium/chatservice.dart';
 import 'package:elysium/chatview.dart';
+import 'package:elysium/message.dart';
 import 'package:elysium/message_input.dart';
+import 'package:elysium/user.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -30,15 +32,19 @@ void main() {
         home: Scaffold(body: ChatView.withParameters(MockChatService()))));
     await tester.pump();
 
-    expect(find.text('hello!'), findsOneWidget);
+    expect(find.text('Bob: hello!'), findsOneWidget);
     expect(find.byType(MessageInput), findsOneWidget);
   });
 }
 
 class MockChatService extends Mock implements ChatService {
-  Stream<List<String>> getMessages() {
+  Stream<List<Message>> getMessages() {
     return Stream.fromIterable([
-      ['hello!']
+      [
+        Message()
+          ..author = (User()..name = 'Bob')
+          ..message = 'hello!'
+      ],
     ]);
   }
 }

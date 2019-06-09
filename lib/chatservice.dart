@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
+import 'message.dart';
 import 'user.dart';
 
 class ChatService {
@@ -32,18 +33,19 @@ class ChatService {
     });
   }
 
-  Stream<List<String>> getMessages() {
+  Stream<List<Message>> getMessages() {
     return from.asStream().asyncExpand((time) {
       return getUserMap().transform(StreamTransformer.fromHandlers(handleData:
-          (Map<String, User> users, EventSink<List<String>> sink) async {
+          (Map<String, User> users, EventSink<List<Message>> sink) async {
         instance
             .collection('messages')
             .where('timestamp', isGreaterThan: time)
             .snapshots()
             .forEach((QuerySnapshot data) {
           final messages = data.documents.map((d) {
-            final userName = users[d.data['uid']].name;
-            return userName + ": " + (d.data['content'] as String);
+            return Message()
+              ..author = users[d.data['uid']]
+              ..message = d.data['content'] as String;
           }).toList();
           sink.add(messages);
         });
@@ -98,7 +100,6 @@ class ChatService {
     final filename = image.path
         .substring(image.path.lastIndexOf('/') + 1)
         .replaceAll(' ', '_');
-    print(filename);
     final StorageReference storageRef = storage.ref().child(filename);
     // TODO: show progress and success.
     final task = storageRef.putFile(image);

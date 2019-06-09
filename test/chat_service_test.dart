@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:elysium/chatservice.dart';
+import 'package:elysium/message.dart';
+import 'package:elysium/user.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 
@@ -44,7 +46,9 @@ void main() {
     final service =
         ChatService.withParameters(firebase, auth, MockFirebaseStorage(), now);
     final messages = await service.getMessages().first;
-    expect(messages, equals(['Bob: hello!']));
+    expect(messages.length, equals(1));
+    expect(messages[0].author.name, equals('Bob'));
+    expect(messages[0].message, equals('hello!'));
   });
 
   test('returns users', () async {
@@ -103,7 +107,7 @@ void main() {
     final service =
         ChatService.withParameters(firebase, auth, MockFirebaseStorage(), now);
     final messages = await service.getMessages().first;
-    expect(messages, equals(['Bob: newer']));
+    expect(messages[0].message, equals('newer'));
   });
 
   test('sends images', () async {
@@ -123,8 +127,8 @@ void main() {
 
     // Check that the gs:// link was sent.
     final messages = await service.getMessages().first;
-    expect(
-        messages, equals(['Bob: gs://some-bucket//IMG_20190609_144619.jpg']));
+    expect(messages[0].message,
+        equals('gs://some-bucket//IMG_20190609_144619.jpg'));
     // Verify that the image was put.
     final fileRef = (storage.ref().child('IMG_20190609_144619.jpg'))
         as MockStorageReference;
