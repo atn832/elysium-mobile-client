@@ -24,7 +24,7 @@ class ChatService {
     from = getUserMap().first.then((users) async {
       final lastTalked = users[await myUid].lastTalked;
       if (lastTalked != null) {
-        return lastTalked.subtract(Duration(minutes: 1));
+        return lastTalked.subtract(Duration(minutes: 5));
       } else if (now != null) {
         return now.subtract(Duration(days: 1));
       } else {
@@ -106,6 +106,12 @@ class ChatService {
     await task.onComplete;
     return sendMessage(
         'gs://' + await storageRef.getBucket() + '/' + storageRef.path);
+  }
+
+  Future<String> getImageUri(String url) async {
+    final ref = await storage.getReferenceFromUrl(url);
+    final downloadUrl = await ref.getDownloadURL();
+    return downloadUrl as String;
   }
 
   Future<String> get myUid async => (await authInstance.currentUser()).uid;
