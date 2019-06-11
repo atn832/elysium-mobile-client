@@ -2,10 +2,7 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:elysium/chatservice.dart';
-import 'package:elysium/message.dart';
-import 'package:elysium/user.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/mockito.dart';
 
 import 'firebase_auth_mocks.dart';
 import 'firebase_mocks.dart';
