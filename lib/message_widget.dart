@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:transparent_image/transparent_image.dart';
 
 import 'chatservice.dart';
 import 'message.dart';
@@ -55,10 +56,18 @@ class _MessageWidgetState extends State<MessageWidget> {
 }
 
 class ImageFactory {
-  Image createImage(String url) {
-    return Image.network(
-      url,
-      fit: BoxFit.fitWidth,
+  Widget createImage(String url) {
+    return Stack(
+      children: <Widget>[
+        Container(
+          padding: EdgeInsets.all(16),
+          child: CircularProgressIndicator(),
+        ),
+        FadeInImage.memoryNetwork(
+          placeholder: kTransparentImage,
+          image: url,
+        ),
+      ],
     );
   }
 }
