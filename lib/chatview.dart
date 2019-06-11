@@ -31,7 +31,11 @@ class _ChatViewState extends State<ChatView> {
               (BuildContext context, AsyncSnapshot<List<Message>> snapshot) {
             switch (snapshot.connectionState) {
               case ConnectionState.waiting:
-                return CircularProgressIndicator();
+                return Expanded(
+                  child: Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                );
               default:
                 // Scroll down on redraw.
                 WidgetsBinding.instance
