@@ -5,6 +5,9 @@
 .pub/
 
 build/
+release/
+*.apk
+*.aab
 
 .flutter-plugins
 
@@ -13,3 +16,7 @@ build/
 
 # Firebase key
 google-services.json
+
+# Fastlane
+report.xml
+metadata/
