@@ -5,6 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import 'chatview.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+
+final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
 
 void main() => runApp(new MyApp());
 
@@ -55,6 +58,9 @@ class _MyHomePageState extends State<MyHomePage> {
       setState(() {
         signedIn = user != null;
       });
+      if (user != null) {
+        _firebaseMessaging.subscribeToTopic("all");
+      }
     });
   }
 
@@ -71,8 +77,9 @@ class _MyHomePageState extends State<MyHomePage> {
               children: [
                 RaisedButton(
                     child: Text('Sign in'),
-                    onPressed: () {
-                      _handleSignIn(widget.auth, widget.googleSignIn);
+                    onPressed: () async {
+                      await _handleSignIn(widget.auth, widget.googleSignIn);
+                      _firebaseMessaging.requestNotificationPermissions();
                     })
               ],
             ))
