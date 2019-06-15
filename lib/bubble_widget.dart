@@ -24,7 +24,7 @@ class _BubbleWidgetState extends State<BubbleWidget> {
 
   @override
   void initState() {
-    initializeDateFormatting(locale, null).then((_) {
+    initializeDateFormatting(locale).then((_) {
       if (!mounted) return;
 
       setState(() {
@@ -51,7 +51,7 @@ class _BubbleWidgetState extends State<BubbleWidget> {
       Card(
           shape: CircleBorder(),
           child: Container(
-            padding: EdgeInsets.all(8),
+            padding: EdgeInsets.all(12),
             child: Text(
               b.author.name[0],
               style: TextStyle(
