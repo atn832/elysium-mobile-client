@@ -50,8 +50,7 @@ class _MessageWidgetState extends State<MessageWidget> {
           ],
         );
     }
-    final m = widget.message;
-    return Text(m.author.name + ': ' + messageContent);
+    return Text(messageContent);
   }
 }
 

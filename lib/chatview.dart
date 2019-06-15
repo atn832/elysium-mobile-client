@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
+import 'bubble_service.dart';
+import 'bubble_widget.dart';
 import 'chatservice.dart';
 import 'message.dart';
 import 'message_input.dart';
@@ -42,14 +44,14 @@ class _ChatViewState extends State<ChatView> {
                     .addPostFrameCallback((Duration timeStamp) {
                   scrollDown();
                 });
+                final bubbles = BubbleService.getBubbles(snapshot.data);
                 return Expanded(
                     child: ListView.builder(
                         controller: _controller,
-                        itemCount:
-                            snapshot.data != null ? snapshot.data.length : 0,
+                        itemCount: bubbles.length,
                         itemBuilder: (BuildContext context, int index) {
                           return Container(
-                              child: MessageWidget(snapshot.data[index]),
+                              child: BubbleWidget(bubbles[index]),
                               padding: EdgeInsets.symmetric(horizontal: 16));
                         }));
             }

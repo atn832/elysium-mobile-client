@@ -32,7 +32,7 @@ void main() {
         home: Scaffold(body: ChatView.withParameters(MockChatService()))));
     await tester.pump();
 
-    expect(find.text('Bob: hello!'), findsOneWidget);
+    expect(find.text('hello!'), findsOneWidget);
     expect(find.byType(MessageInput), findsOneWidget);
   });
 }

@@ -24,5 +24,6 @@ class BubbleService {
   static bool shouldCreateBubble(List<Bubble> bubbles, Message message) =>
       bubbles.isEmpty ||
       bubbles.last.author.uid != message.author.uid ||
-          message.time.difference(bubbles.last.messages.last.time) > NewBubbleThreshold;
+      message.time.difference(bubbles.last.messages.last.time) >
+          NewBubbleThreshold;
 }

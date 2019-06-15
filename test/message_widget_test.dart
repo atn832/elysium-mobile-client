@@ -18,7 +18,7 @@ void main() {
     await tester
         .pumpWidget(MaterialApp(home: Scaffold(body: MessageWidget(m))));
     await tester.pump();
-    expect(find.text('Bob: hello!'), findsOneWidget);
+    expect(find.text('hello!'), findsOneWidget);
   });
 
   testWidgets('displays images', (WidgetTester tester) async {
