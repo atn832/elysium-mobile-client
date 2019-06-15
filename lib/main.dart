@@ -59,7 +59,7 @@ class _MyHomePageState extends State<MyHomePage> {
         signedIn = user != null;
       });
       if (user != null) {
-        _firebaseMessaging.subscribeToTopic("all");
+        _firebaseMessaging.subscribeToTopic(user.uid);
       }
     });
   }
