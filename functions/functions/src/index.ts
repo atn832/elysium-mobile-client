@@ -3,9 +3,15 @@ import * as admin from 'firebase-admin';
 
 admin.initializeApp();
 
+const userIdsPromise: Promise<string[]> = admin.firestore().collection('/users').get().then((snapshot) => {
+	return snapshot.docs.map((docSnapshot) => {
+		return docSnapshot.id;
+	});
+});
+
 export const notifyOnNewMessage = functions.firestore.document('/messages/{messageId}')
-	.onCreate((snapshot, context) => {
-		if (snapshot == null) return;
+	.onCreate(async (snapshot, context) => {
+		if (!snapshot) return;
 
 		console.log(context.params.messageId);
 		console.log(snapshot.data);
@@ -14,10 +20,17 @@ export const notifyOnNewMessage = functions.firestore.document('/messages/{messa
 			notification: {
 				title: 'Nouveau message',
 				body: snapshot.get('content'),
-				icon: "default"
+				icon: 'default'
 			}
 		};
-		return admin.messaging().sendToTopic('all', notificationContent).then(result => {
-			console.log('Notification sent!');
-		});
+		const userIds = await userIdsPromise;
+		return Promise.all(userIds.map((userId) => {
+			// Do not notify self.
+			if (userId === snapshot.get('uid')) return;
+
+			// Notify others.
+			return admin.messaging().sendToTopic(userId, notificationContent).then(result => {
+				console.log(`Notification sent to ${userId}`);
+			});
+		}));
 	});
