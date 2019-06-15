@@ -87,6 +87,10 @@ class MockCollectionReference extends Mock implements CollectionReference {
   @override
   Future<DocumentReference> add(Map<String, dynamic> data) {
     currentChildId += 'z';
+    final keysWithDateTime = data.keys.where((key) => data[key] is DateTime);
+    for (final key in keysWithDateTime) {
+      data[key] = Timestamp.fromDate(data[key]);
+    }
     root[currentChildId] = data;
     return Future.value(document(currentChildId));
   }
@@ -107,6 +111,9 @@ class MockCollectionReference extends Mock implements CollectionReference {
             return document[field] == isEqualTo;
           } else if (isGreaterThan != null) {
             Comparable fieldValue = document[field];
+            if (isGreaterThan is DateTime) {
+              isGreaterThan = Timestamp.fromDate(isGreaterThan);
+            }
             return fieldValue.compareTo(isGreaterThan) > 0;
           }
         })

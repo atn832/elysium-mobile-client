@@ -45,7 +45,8 @@ class ChatService {
           final messages = data.documents.map((d) {
             return Message()
               ..author = users[d.data['uid']]
-              ..message = d.data['content'] as String;
+              ..message = d.data['content'] as String
+              ..time = (d.data['timestamp'] as Timestamp).toDate();
           }).toList();
           sink.add(messages);
         });

@@ -46,6 +46,7 @@ void main() {
     expect(messages.length, equals(1));
     expect(messages[0].author.name, equals('Bob'));
     expect(messages[0].message, equals('hello!'));
+    expect(messages[0].time, equals(now));
   });
 
   test('returns users', () async {
