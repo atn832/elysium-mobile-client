@@ -27,6 +27,8 @@ class _MessageWidgetState extends State<MessageWidget> {
   void initState() {
     if (isFirebaseImage) {
       widget.service.getImageUri(messageContent).then((uri) {
+        if (!mounted) return;
+
         setState(() {
           imageUrl = uri;
         });

@@ -26,15 +26,6 @@ void main() {
 
     expect(find.text('Sign in'), findsNothing);
   });
-
-  testWidgets('displays messages', (WidgetTester tester) async {
-    await tester.pumpWidget(MaterialApp(
-        home: Scaffold(body: ChatView.withParameters(MockChatService()))));
-    await tester.pump();
-
-    expect(find.text('hello!'), findsOneWidget);
-    expect(find.byType(MessageInput), findsOneWidget);
-  });
 }
 
 class MockChatService extends Mock implements ChatService {

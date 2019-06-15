@@ -12,12 +12,15 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:mockito/mockito.dart';
 
+final now = DateTime(2019, 06, 06);
+
 void main() {
   testWidgets('displays bubbles', (WidgetTester tester) async {
     final user = User()..name = 'Bob';
     final m = Message()
       ..author = user
-      ..message = 'hello!';
+      ..message = 'hello!'
+      ..time = now;
     final b = Bubble()
       ..author = user
       ..messages = [m];
@@ -25,6 +28,7 @@ void main() {
     await tester.pump();
     expect(find.text('B'), findsOneWidget);
     expect(find.text('hello!'), findsOneWidget);
+    expect(find.text('jeudi 6 juin 2019 00:00'), findsOneWidget);
   });
 }
 
