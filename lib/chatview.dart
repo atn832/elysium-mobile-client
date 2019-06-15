@@ -56,9 +56,9 @@ class _ChatViewState extends State<ChatView> {
                         }));
             }
           }),
-      Divider(),
       Container(
-        margin: EdgeInsets.all(16),
+        color: Color.fromARGB(255, 255, 255, 255),
+        padding: EdgeInsets.only(left: 16, bottom: 16),
         child: MessageInput(widget._service),
       )
     ]);
