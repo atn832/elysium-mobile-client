@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:transparent_image/transparent_image.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'chatservice.dart';
 import 'message.dart';
@@ -39,6 +40,7 @@ class _MessageWidgetState extends State<MessageWidget> {
 
   String get messageContent => widget.message.message;
   bool get isFirebaseImage => messageContent.startsWith('gs://');
+  bool get isLink => messageContent.startsWith(RegExp('https?://'));
 
   @override
   Widget build(BuildContext context) {
@@ -51,6 +53,14 @@ class _MessageWidgetState extends State<MessageWidget> {
             CircularProgressIndicator(),
           ],
         );
+    }
+    if (isLink) {
+      return InkWell(
+          child: Text(
+            messageContent,
+            style: TextStyle(color: Theme.of(context).accentColor),
+          ),
+          onTap: () => launch(messageContent));
     }
     return Text(messageContent);
   }
