@@ -25,25 +25,43 @@ class ChatView extends StatefulWidget {
   }
 }
 
-class _ChatViewState extends State<ChatView> {
+class _ChatViewState extends State<ChatView> with WidgetsBindingObserver {
   ScrollController _controller = ScrollController();
 
   @override
   void initState() {
-    getSharedText().then((text) {
+    maybeSendSharedData();
+    WidgetsBinding.instance.addObserver(this);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    WidgetsBinding.instance.removeObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      maybeSendSharedData();
+    }
+  }
+
+  Future<void> maybeSendSharedData() async {
+    await getSharedText().then((text) {
       if (text != null) {
         widget._service.sendMessage(text);
       }
     });
-    Future.wait([getSharedImageFilename(), getSharedImage()])
+    return Future.wait([getSharedImageFilename(), getSharedImage()])
         .then((results) async {
-      final filename = results[0];
+      final filename = DateTime.now().toIso8601String() + '.png';//results[0];
       final imageBytes = results[1];
       if (filename != null && imageBytes != null) {
         widget._service.sendImageData(filename, imageBytes);
       }
     });
-    super.initState();
   }
 
   @override
