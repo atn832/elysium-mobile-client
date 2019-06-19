@@ -98,15 +98,30 @@ class ChatService {
   }
 
   Future<void> sendImage(File image) async {
-    final filename = image.path
-        .substring(image.path.lastIndexOf('/') + 1)
-        .replaceAll(' ', '_');
+    final filename =
+        removeSpaces(image.path.substring(image.path.lastIndexOf('/') + 1));
     final StorageReference storageRef = storage.ref().child(filename);
-    // TODO: show progress and success.
     final task = storageRef.putFile(image);
+    return finalizeSendImageTask(storageRef, task);
+  }
+
+  Future<void> sendImageData(String imageFilename, List<int> data) async {
+    final filename = removeSpaces(imageFilename);
+    final StorageReference storageRef = storage.ref().child(filename);
+    final task = storageRef.putData(data);
+    return finalizeSendImageTask(storageRef, task);
+  }
+
+  Future<void> finalizeSendImageTask(
+      StorageReference storageRef, StorageUploadTask task) async {
+    // TODO: show progress and success.
     await task.onComplete;
     return sendMessage(
         'gs://' + await storageRef.getBucket() + '/' + storageRef.path);
+  }
+
+  String removeSpaces(String filename) {
+    return filename.replaceAll(' ', '_');
   }
 
   Future<String> getImageUri(String url) async {

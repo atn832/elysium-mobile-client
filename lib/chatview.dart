@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -31,6 +33,14 @@ class _ChatViewState extends State<ChatView> {
     getSharedText().then((text) {
       if (text != null) {
         widget._service.sendMessage(text);
+      }
+    });
+    Future.wait([getSharedImageFilename(), getSharedImage()])
+        .then((results) async {
+      final filename = results[0];
+      final imageBytes = results[1];
+      if (filename != null && imageBytes != null) {
+        widget._service.sendImageData(filename, imageBytes);
       }
     });
     super.initState();
@@ -83,5 +93,13 @@ class _ChatViewState extends State<ChatView> {
   Future<String> getSharedText() async {
     final sharedData = await platform.invokeMethod("getSharedText");
     return sharedData;
+  }
+
+  Future<String> getSharedImageFilename() async {
+    return platform.invokeMethod("getSharedImageFilename");
+  }
+
+  Future<List<int>> getSharedImage() async {
+    return platform.invokeMethod("getSharedImage");
   }
 }

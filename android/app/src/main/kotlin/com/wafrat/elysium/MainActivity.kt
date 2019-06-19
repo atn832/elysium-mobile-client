@@ -9,6 +9,8 @@ import io.flutter.plugins.GeneratedPluginRegistrant
 
 class MainActivity(): FlutterActivity() {
   private var sharedText: String? = null
+  private var sharedImage: ByteArray? = null;
+  private var sharedImageFilename: String? = null
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -20,6 +22,8 @@ class MainActivity(): FlutterActivity() {
     if (Intent.ACTION_SEND.equals(action) && type != null) {
       if ("text/plain".equals(type)) {
         handleSendText(intent)
+      } else {
+        handleSendImage(intent)
       }
     }
 
@@ -29,10 +33,26 @@ class MainActivity(): FlutterActivity() {
                 result.success(sharedText)
                 sharedText = null
               }
+              if (call.method.contentEquals("getSharedImage")) {
+                result.success(sharedImage)
+                sharedImage = null
+              }
+              if (call.method.contentEquals("getSharedImageFilename")) {
+                result.success(sharedImageFilename)
+                sharedImageFilename = null
+              }
             }
   }
 
   fun handleSendText(intent : Intent) {
     sharedText = intent.getStringExtra(Intent.EXTRA_TEXT)
+  }
+
+  fun handleSendImage(intent : Intent) {
+    val uri = intent.getClipData().getItemAt(0).getUri()
+    val inputStream = contentResolver.openInputStream(uri)
+    sharedImage = inputStream.readBytes()
+    // TODO: Fix. This is not the actual filename.
+    sharedImageFilename = uri.path
   }
 }
