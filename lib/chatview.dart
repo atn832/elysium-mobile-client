@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
 import 'bubble_service.dart';
@@ -6,7 +7,8 @@ import 'bubble_widget.dart';
 import 'chatservice.dart';
 import 'message.dart';
 import 'message_input.dart';
-import 'message_widget.dart';
+
+const platform = const MethodChannel('app.channel.shared.data');
 
 class ChatView extends StatefulWidget {
   final ChatService _service;
@@ -23,6 +25,16 @@ class ChatView extends StatefulWidget {
 
 class _ChatViewState extends State<ChatView> {
   ScrollController _controller = ScrollController();
+
+  @override
+  void initState() {
+    getSharedText().then((text) {
+      if (text != null) {
+        widget._service.sendMessage(text);
+      }
+    });
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -66,5 +78,10 @@ class _ChatViewState extends State<ChatView> {
 
   scrollDown() {
     _controller.jumpTo(_controller.position.maxScrollExtent);
+  }
+
+  Future<String> getSharedText() async {
+    final sharedData = await platform.invokeMethod("getSharedText");
+    return sharedData;
   }
 }
