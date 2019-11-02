@@ -19,10 +19,11 @@ class MockFirebaseAuth extends Mock implements FirebaseAuth {
   }
 
   @override
-  Future<FirebaseUser> signInWithCredential(AuthCredential credential) {
-    _currentUser = MockFirebaseUser();
+  Future<AuthResult> signInWithCredential(AuthCredential credential) {
+    final authResult = MockAuthResult();
+    _currentUser = authResult.user;
     stateChangedStreamController.add(_currentUser);
-    return Future.value(_currentUser);
+    return Future.value(authResult);
   }
 
   @override
@@ -52,4 +53,8 @@ class MockFirebaseUser extends Mock implements FirebaseUser {
 
   @override
   String get uid => 'aabbcc';
+}
+
+class MockAuthResult extends Mock implements AuthResult {
+  FirebaseUser user = MockFirebaseUser();
 }

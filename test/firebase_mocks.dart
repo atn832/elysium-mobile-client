@@ -123,7 +123,7 @@ class MockCollectionReference extends Mock implements CollectionReference {
   }
 
   @override
-  Stream<QuerySnapshot> snapshots() {
+  Stream<QuerySnapshot> snapshots({bool includeMetadataChanges = false}) {
     final documents = root.entries
         .map((entry) => MockDocumentSnapshot(entry.key, entry.value))
         .toList();
@@ -142,7 +142,7 @@ class MockQuery extends Mock implements Query {
   }
 
   @override
-  Stream<QuerySnapshot> snapshots() {
+  Stream<QuerySnapshot> snapshots({bool includeMetadataChanges = false}) {
     return Stream.fromIterable([MockSnapshot(documents)]);
   }
 }

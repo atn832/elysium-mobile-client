@@ -2,6 +2,7 @@ package com.wafrat.elysium
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 
 import io.flutter.app.FlutterActivity
 import io.flutter.plugin.common.MethodChannel
@@ -16,16 +17,7 @@ class MainActivity(): FlutterActivity() {
     super.onCreate(savedInstanceState)
     GeneratedPluginRegistrant.registerWith(this)
 
-    val action = intent.action
-    val type = intent.type
-
-    if (Intent.ACTION_SEND.equals(action) && type != null) {
-      if ("text/plain".equals(type)) {
-        handleSendText(intent)
-      } else {
-        handleSendImage(intent)
-      }
-    }
+    handleShareIntent()
 
     MethodChannel(flutterView, "app.channel.shared.data")
             .setMethodCallHandler { call, result ->
@@ -42,6 +34,19 @@ class MainActivity(): FlutterActivity() {
                 sharedImageFilename = null
               }
             }
+  }
+
+  private fun handleShareIntent() {
+    val action = intent.action
+    val type = intent.type
+
+    if (Intent.ACTION_SEND.equals(action) && type != null) {
+      if ("text/plain".equals(type)) {
+        handleSendText(intent)
+      } else {
+        handleSendImage(intent)
+      }
+    }
   }
 
   fun handleSendText(intent : Intent) {

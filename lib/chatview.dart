@@ -109,8 +109,7 @@ class _ChatViewState extends State<ChatView> with WidgetsBindingObserver {
   }
 
   Future<String> getSharedText() async {
-    final sharedData = await platform.invokeMethod("getSharedText");
-    return sharedData;
+    return await platform.invokeMethod("getSharedText");
   }
 
   Future<String> getSharedImageFilename() async {

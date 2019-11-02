@@ -9,7 +9,10 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 
 final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
 
-void main() => runApp(new MyApp());
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(new MyApp());
+}
 
 class MyApp extends StatelessWidget {
   final FirebaseAuth _auth;
@@ -88,7 +91,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
-Future<FirebaseUser> _handleSignIn(
+Future<AuthCredential> _signInWithGoogle(
     FirebaseAuth auth, GoogleSignIn googleSignIn) async {
   final GoogleSignInAccount googleUser = await googleSignIn.signIn();
   final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
@@ -97,7 +100,12 @@ Future<FirebaseUser> _handleSignIn(
     accessToken: googleAuth.accessToken,
     idToken: googleAuth.idToken,
   );
+  return credential;
+}
 
-  final FirebaseUser user = await auth.signInWithCredential(credential);
+Future<FirebaseUser> _handleSignIn(
+    FirebaseAuth auth, GoogleSignIn googleSignIn) async {
+  final credential = await _signInWithGoogle(auth, googleSignIn);
+  final FirebaseUser user = (await auth.signInWithCredential(credential)).user;
   return user;
 }
