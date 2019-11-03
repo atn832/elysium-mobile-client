@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:elysium/chatservice.dart';
@@ -31,10 +32,8 @@ void main() {
     when(mockChatService.getImageUri(imageStorageUrl))
         .thenAnswer((_) => Future.value(downloadUrl));
     final mockImageFactory = MockImageFactory();
-    when(mockImageFactory.createImage(downloadUrl)).thenReturn(Image.memory(
-        Uint8List.fromList(
-            'data:image/gif;base64,R0lGODlhAQABAAAAACwAAAAAAQABAAA='
-                .codeUnits)));
+    when(mockImageFactory.createImage(downloadUrl)).thenReturn(Image.file(
+        File('pixel.png')));
 
     await tester.pumpWidget(MaterialApp(
         home: Scaffold(
