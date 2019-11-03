@@ -27,11 +27,16 @@ class ChatView extends StatefulWidget {
 
 class _ChatViewState extends State<ChatView> with WidgetsBindingObserver {
   ScrollController _controller = ScrollController();
+  bool stickToBottom = true;
 
   @override
   void initState() {
     maybeSendSharedData();
     WidgetsBinding.instance.addObserver(this);
+    // Update stickToBottom flag.
+    _controller.addListener(() {
+      stickToBottom = _controller.position.extentAfter == 0;
+    });
     super.initState();
   }
 
@@ -80,10 +85,12 @@ class _ChatViewState extends State<ChatView> with WidgetsBindingObserver {
                 );
               default:
                 // Scroll down on redraw.
-                WidgetsBinding.instance
-                    .addPostFrameCallback((Duration timeStamp) {
-                  scrollDown();
-                });
+                if (stickToBottom) {
+                  WidgetsBinding.instance
+                      .addPostFrameCallback((Duration timeStamp) {
+                    scrollDown();
+                  });
+                }
                 final bubbles = BubbleService.getBubbles(snapshot.data);
                 return Expanded(
                     child: ListView.builder(
@@ -100,7 +107,7 @@ class _ChatViewState extends State<ChatView> with WidgetsBindingObserver {
         color: Color.fromARGB(255, 255, 255, 255),
         padding: EdgeInsets.only(left: 16, bottom: 16),
         child: MessageInput(widget._service),
-      )
+      ),
     ]);
   }
 
