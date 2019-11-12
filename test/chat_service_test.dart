@@ -1,12 +1,11 @@
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_firestore_mocks/cloud_firestore_mocks.dart';
 import 'package:elysium/chatservice.dart';
+import 'package:firebase_auth_mocks/firebase_auth_mocks.dart';
+import 'package:firebase_storage_mocks/firebase_storage_mocks.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'firebase_auth_mocks.dart';
-import 'firebase_mocks.dart';
-import 'firebase_storage_mocks.dart';
 
 final now = DateTime(2019, 06, 06);
 

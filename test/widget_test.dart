@@ -1,17 +1,14 @@
 import 'dart:async';
 
 import 'package:elysium/chatservice.dart';
-import 'package:elysium/chatview.dart';
 import 'package:elysium/message.dart';
-import 'package:elysium/message_input.dart';
 import 'package:elysium/user.dart';
-import 'package:flutter/material.dart';
+import 'package:firebase_auth_mocks/firebase_auth_mocks.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:elysium/main.dart';
+import 'package:google_sign_in_mocks/google_sign_in_mocks.dart';
 import 'package:mockito/mockito.dart';
-
-import 'firebase_auth_mocks.dart';
 
 void main() {
   testWidgets('signs in', (WidgetTester tester) async {

@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:elysium/chatservice.dart';
 import 'package:elysium/message.dart';
