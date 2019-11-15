@@ -46,10 +46,10 @@ packages:
   cloud_firestore_mocks:
     dependency: "direct main"
     description:
-      path: "../cloud_firestore_mocks"
-      relative: true
-    source: path
-    version: "0.0.0"
+      name: cloud_firestore_mocks
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.2.0"
   collection:
     dependency: transitive
     description:
@@ -88,10 +88,10 @@ packages:
   firebase_auth_mocks:
     dependency: "direct main"
     description:
-      path: "../firebase_auth_mocks"
-      relative: true
-    source: path
-    version: "0.0.0"
+      name: firebase_auth_mocks
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.1.0"
   firebase_core:
     dependency: transitive
     description:
@@ -116,10 +116,10 @@ packages:
   firebase_storage_mocks:
     dependency: "direct main"
     description:
-      path: "../firebase_storage_mocks"
-      relative: true
-    source: path
-    version: "0.0.0"
+      name: firebase_storage_mocks
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.1.0"
   flutter:
     dependency: "direct main"
     description: flutter
@@ -147,10 +147,10 @@ packages:
   google_sign_in_mocks:
     dependency: "direct main"
     description:
-      path: "../google_sign_in_mocks"
-      relative: true
-    source: path
-    version: "0.0.0"
+      name: google_sign_in_mocks
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.1.0+2"
   image:
     dependency: transitive
     description:

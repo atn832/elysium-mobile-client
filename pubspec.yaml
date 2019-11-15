@@ -16,18 +16,14 @@ dependencies:
   flutter:
     sdk: flutter
   cloud_firestore: ^0.12.9+6
-  cloud_firestore_mocks:
-    path: ../cloud_firestore_mocks
+  cloud_firestore_mocks: ^0.2.0
   firebase_auth: ^0.14.0+5
-  firebase_auth_mocks:
-    path: ../firebase_auth_mocks
+  firebase_auth_mocks: ^0.1.0
   firebase_messaging: ^5.1.6
   firebase_storage: ^3.0.6
-  firebase_storage_mocks:
-    path: ../firebase_storage_mocks
+  firebase_storage_mocks: ^0.1.0
   google_sign_in: ^4.0.11
-  google_sign_in_mocks:
-    path: ../google_sign_in_mocks
+  google_sign_in_mocks: ^0.1.0+2
   image_picker: ^0.6.1+10
   intl: ^0.16.0
   transparent_image: ^1.0.0
