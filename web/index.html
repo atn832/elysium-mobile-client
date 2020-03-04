@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="A new Flutter project.">
+
+  <!-- iOS meta tags & icons -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="elysium_mobile_client">
+  <link rel="apple-touch-icon" href="/icons/Icon-192.png">
+
+  <title>elysium_mobile_client</title>
+  <link rel="manifest" href="/manifest.json">
+
+  <script src="https://www.gstatic.com/firebasejs/7.9.3/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.9.3/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.9.3/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.9.3/firebase-storage.js"></script>
+  
+  <meta name="google-signin-client_id" content="204627938270-kfj1tmp4jqmkt9piip0uhddvsar74bti.apps.googleusercontent.com" />
+  <script>
+    // Your web app's Firebase configuration
+    var firebaseConfig = {
+      apiKey: "AIzaSyCHlC-dVX2TEtIhZ1dMqoKhiBGXrPu9fdU",
+      authDomain: "elysium-216115.firebaseapp.com",
+      databaseURL: "https://elysium-216115.firebaseio.com",
+      projectId: "elysium-216115",
+      storageBucket: "elysium-216115.appspot.com",
+      messagingSenderId: "204627938270",
+      appId: "1:204627938270:web:59cf7e1733affcbe19eb4f"
+    };
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+  </script>
+</head>
+<body>
+  <!-- This script installs service_worker.js to provide PWA functionality to
+       application. For more information, see:
+       https://developers.google.com/web/fundamentals/primers/service-workers -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('/flutter_service_worker.js');
+      });
+    }
+  </script>
+  <script src="main.dart.js" type="application/javascript"></script>
+</body>
+</html>
