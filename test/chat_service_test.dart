@@ -89,7 +89,7 @@ void main() {
     await firebase.collection('messages').add({
       'content': 'hello!',
       'uid': uid,
-      'timestamp': now.subtract(Duration(minutes: 3)),
+      'timestamp': now.subtract(Duration(hours: 3)),
     });
     await firebase.collection('messages').add({
       'content': 'newer',
