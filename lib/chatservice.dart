@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
 import 'message.dart';
@@ -30,6 +31,23 @@ class ChatService {
       } else {
         return DateTime.now();
       }
+    });
+
+    subscribeToGeolocation();
+  }
+
+  subscribeToGeolocation() {
+    final geolocator = Geolocator();
+    final locationOptions =
+        LocationOptions(accuracy: LocationAccuracy.high, distanceFilter: 10);
+    StreamSubscription<Position> positionStream = geolocator
+        .getPositionStream(locationOptions)
+        .listen((Position position) {
+      print(position == null
+          ? 'Unknown'
+          : position.latitude.toString() +
+              ', ' +
+              position.longitude.toString());
     });
   }
 
