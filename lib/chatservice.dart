@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_native_timezone/flutter_native_timezone.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
@@ -10,22 +11,29 @@ import 'message.dart';
 import 'user.dart';
 
 const LocationKey = 'location';
+const TimezoneKey = 'timezone';
 
 class ChatService {
   final Firestore instance;
   final FirebaseAuth authInstance;
   final FirebaseStorage storage;
   final Geolocator geolocator;
+  final Future<String> Function() getLocalTimezone;
   final DateTime now;
   Future<DateTime> from;
   Position position;
 
   ChatService()
-      : this.withParameters(Firestore.instance, FirebaseAuth.instance,
-            FirebaseStorage.instance, Geolocator(), DateTime.now());
+      : this.withParameters(
+            Firestore.instance,
+            FirebaseAuth.instance,
+            FirebaseStorage.instance,
+            Geolocator(),
+            FlutterNativeTimezone.getLocalTimezone,
+            DateTime.now());
 
-  ChatService.withParameters(
-      this.instance, this.authInstance, this.storage, this.geolocator, this.now) {
+  ChatService.withParameters(this.instance, this.authInstance, this.storage,
+      this.geolocator, this.getLocalTimezone, this.now) {
     from = getUserMap().first.then((users) async {
       final lastTalked = users[await myUid].lastTalked;
       if (lastTalked != null) {
@@ -40,15 +48,13 @@ class ChatService {
     maybeSubscribeToGeolocation();
   }
 
-  maybeSubscribeToGeolocation() {
+  maybeSubscribeToGeolocation() async {
     final locationOptions =
         LocationOptions(accuracy: LocationAccuracy.high, distanceFilter: 10);
     if (geolocator == null) {
       return;
     }
-    geolocator
-        .getPositionStream(locationOptions)
-        .listen((Position position) {
+    geolocator.getPositionStream(locationOptions).listen((Position position) {
       this.position = position;
     });
   }
@@ -64,7 +70,9 @@ class ChatService {
             .forEach((QuerySnapshot data) {
           final messages = data.documents.map((d) {
             final point = d.data[LocationKey] as GeoPoint;
-            final position = point != null ? Position(latitude: point.latitude, longitude: point.longitude) : null;
+            final position = point != null
+                ? Position(latitude: point.latitude, longitude: point.longitude)
+                : null;
             return Message()
               ..author = users[d.data['uid']]
               ..message = d.data['content'] as String
@@ -119,9 +127,16 @@ class ChatService {
       data[LocationKey] = GeoPoint(position.latitude, position.longitude);
     }
     await instance.collection('messages').add(data);
-    await instance.collection('users').document(await myUid).setData({
+    final Map<String, dynamic> userData = {
       'lastTalked': timestamp,
-    }, merge: true);
+    };
+    if (getLocalTimezone != null) {
+      userData[TimezoneKey] = await getLocalTimezone();
+    }
+    await instance
+        .collection('users')
+        .document(await myUid)
+        .setData(userData, merge: true);
   }
 
   Future<void> sendImage(File image) async {
