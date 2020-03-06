@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:geocoder/geocoder.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 
@@ -67,16 +69,47 @@ class _BubbleWidgetState extends State<BubbleWidget> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         for (final m in b.messages) MessageWidget(m),
-                        if (timeFormat != null) ...[
-                          SizedBox(height: 8),
+                        if (b.position != null)
                           Row(
-                            children: [
-                              Text(formatter.format(bubbleTime)),
-                            ],
-                            mainAxisAlignment: MainAxisAlignment.end,
-                          )
-                        ],
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                PositionWidget(b.position),
+                              ]),
+                        if (timeFormat != null)
+                          Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                Text(formatter.format(bubbleTime)),
+                              ])
                       ])))),
     ]);
+  }
+}
+
+class PositionWidget extends StatelessWidget {
+  final Position position;
+
+  PositionWidget(this.position);
+
+  @override
+  Widget build(BuildContext context) {
+    final coordinates = Coordinates(position.latitude, position.longitude);
+    print(coordinates);
+    return FutureBuilder<List<Address>>(
+        future: Geocoder.local.findAddressesFromCoordinates(coordinates),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return Expanded(child: LinearProgressIndicator());
+          }
+          final address = snapshot.data.first;
+          print(address.toMap());
+          final components = [
+            address.subLocality,
+            address.locality,
+            address.subAdminArea,
+            address.adminArea,
+          ].where((element) => element != null);
+          return Text(components.join(', '));
+        });
   }
 }
