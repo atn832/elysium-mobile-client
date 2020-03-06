@@ -29,7 +29,7 @@ class ChatService {
     from = getUserMap().first.then((users) async {
       final lastTalked = users[await myUid].lastTalked;
       if (lastTalked != null) {
-        return lastTalked.subtract(Duration(minutes: 5));
+        return lastTalked.subtract(Duration(minutes: 10));
       } else if (now != null) {
         return now.subtract(Duration(days: 1));
       } else {
