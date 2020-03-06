@@ -10,6 +10,8 @@ release/
 *.aab
 
 .flutter-plugins
+.flutter-plugins-dependencies
+pubspec.lock
 
 # Android Studio settings
 .idea
