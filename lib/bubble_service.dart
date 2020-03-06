@@ -17,6 +17,10 @@ class BubbleService {
       } else {
         bubbles.last.messages.add(message);
       }
+      // Update the position if present.
+      if (message.position != null) {
+        bubbles.last.position = message.position;
+      }
     }
     return bubbles;
   }

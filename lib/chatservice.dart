@@ -9,6 +9,8 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'message.dart';
 import 'user.dart';
 
+const LocationKey = 'location';
+
 class ChatService {
   final Firestore instance;
   final FirebaseAuth authInstance;
@@ -61,10 +63,13 @@ class ChatService {
             .snapshots()
             .forEach((QuerySnapshot data) {
           final messages = data.documents.map((d) {
+            final point = d.data[LocationKey] as GeoPoint;
+            final position = point != null ? Position(latitude: point.latitude, longitude: point.longitude) : null;
             return Message()
               ..author = users[d.data['uid']]
               ..message = d.data['content'] as String
-              ..time = (d.data['timestamp'] as Timestamp).toDate();
+              ..time = (d.data['timestamp'] as Timestamp).toDate()
+              ..position = position;
           }).toList();
           sink.add(messages);
         });
@@ -111,7 +116,7 @@ class ChatService {
       'timestamp': timestamp,
     };
     if (position != null) {
-      data['location'] = GeoPoint(position.latitude, position.longitude);
+      data[LocationKey] = GeoPoint(position.latitude, position.longitude);
     }
     await instance.collection('messages').add(data);
     await instance.collection('users').document(await myUid).setData({
