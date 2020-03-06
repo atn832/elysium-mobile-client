@@ -94,14 +94,17 @@ class PositionWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final coordinates = Coordinates(position.latitude, position.longitude);
-    print(coordinates);
     return FutureBuilder<List<Address>>(
         future: Geocoder.local.findAddressesFromCoordinates(coordinates),
         builder: (context, snapshot) {
-          if (!snapshot.hasData) {
+          if (snapshot.connectionState != ConnectionState.done) {
             return Expanded(child: LinearProgressIndicator());
           }
-          final address = snapshot.data.first;
+          final addresses = snapshot.data;
+          if (addresses == null || addresses.isEmpty) {
+            return Text(coordinates.latitude.toStringAsFixed(2) + ', ' + coordinates.longitude.toStringAsFixed(2));
+          }
+          final address = addresses.first;
           print(address.toMap());
           final components = [
             address.subLocality,
