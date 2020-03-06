@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
 import 'message.dart';
@@ -12,15 +13,17 @@ class ChatService {
   final Firestore instance;
   final FirebaseAuth authInstance;
   final FirebaseStorage storage;
+  final Geolocator geolocator;
   final DateTime now;
   Future<DateTime> from;
+  Position position;
 
   ChatService()
       : this.withParameters(Firestore.instance, FirebaseAuth.instance,
-            FirebaseStorage.instance, DateTime.now());
+            FirebaseStorage.instance, Geolocator(), DateTime.now());
 
   ChatService.withParameters(
-      this.instance, this.authInstance, this.storage, this.now) {
+      this.instance, this.authInstance, this.storage, this.geolocator, this.now) {
     from = getUserMap().first.then((users) async {
       final lastTalked = users[await myUid].lastTalked;
       if (lastTalked != null) {
@@ -30,6 +33,21 @@ class ChatService {
       } else {
         return DateTime.now();
       }
+    });
+
+    maybeSubscribeToGeolocation();
+  }
+
+  maybeSubscribeToGeolocation() {
+    final locationOptions =
+        LocationOptions(accuracy: LocationAccuracy.high, distanceFilter: 10);
+    if (geolocator == null) {
+      return;
+    }
+    geolocator
+        .getPositionStream(locationOptions)
+        .listen((Position position) {
+      this.position = position;
     });
   }
 
@@ -87,11 +105,15 @@ class ChatService {
 
   Future<void> sendMessage(String message, [DateTime now]) async {
     final timestamp = now ?? DateTime.now();
-    await instance.collection('messages').add({
+    final Map<String, dynamic> data = {
       'uid': await myUid,
       'content': message,
       'timestamp': timestamp,
-    });
+    };
+    if (position != null) {
+      data['location'] = GeoPoint(position.latitude, position.longitude);
+    }
+    await instance.collection('messages').add(data);
     await instance.collection('users').document(await myUid).setData({
       'lastTalked': timestamp,
     }, merge: true);
