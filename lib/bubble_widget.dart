@@ -5,9 +5,8 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 
 import 'bubble.dart';
+import 'main.dart';
 import 'message_widget.dart';
-
-const locale = "fr";
 
 class BubbleWidget extends StatefulWidget {
   final Bubble bubble;
@@ -26,14 +25,15 @@ class _BubbleWidgetState extends State<BubbleWidget> {
 
   @override
   void initState() {
-    initializeDateFormatting(locale).then((_) {
+    initializeDateFormatting(AppLocale
+    ).then((_) {
       if (!mounted) return;
 
       setState(() {
         // 08:27
-        timeFormat = DateFormat.Hm(locale);
+        timeFormat = DateFormat.Hm(AppLocale);
         // Fri 14 Jun, 08:27
-        dateTimeFormat = DateFormat.yMMMMEEEEd(locale).add_Hm();
+        dateTimeFormat = DateFormat.yMMMMEEEEd(AppLocale).add_Hm();
       });
     });
 

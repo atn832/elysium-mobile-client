@@ -3,14 +3,19 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:timezone/data/latest.dart';
 
 import 'chatview.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
 final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
+const AppLocale = 'fr';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  initializeTimeZones();
+  await initializeDateFormatting(AppLocale);
   runApp(new MyApp());
 }
 

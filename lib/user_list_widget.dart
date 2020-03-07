@@ -1,7 +1,13 @@
 import 'package:elysium/user.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:timezone/timezone.dart';
+
+import 'main.dart';
 
 const lastTalkedThreshold = Duration(days: 7);
+// 08:27
+final timeFormat = DateFormat.Hm(AppLocale);
 
 class UserListWidget extends StatelessWidget {
   final List<User> users;
@@ -25,10 +31,27 @@ class UserListWidget extends StatelessWidget {
                 child: Row(
                   children: [
                     Text(user.name),
+                    if (user.timezone != null) ...[
+                      SizedBox(width: 16),
+                      LocalTimeWidget(user.timezone)
+                    ]
                   ],
                 ),
               ),
             )
         ]));
+  }
+}
+
+class LocalTimeWidget extends StatelessWidget {
+  final String timezoneName;
+
+  LocalTimeWidget(this.timezoneName);
+
+  @override
+  Widget build(BuildContext context) {
+    final location = getLocation(timezoneName);
+    final remoteTime = TZDateTime.from(DateTime.now(), location);
+    return Text(timeFormat.format(remoteTime));
   }
 }
