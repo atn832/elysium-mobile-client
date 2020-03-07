@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'bubble_service.dart';
 import 'bubble_widget.dart';
 import 'chatservice.dart';
+import 'get_more_button.dart';
 import 'message.dart';
 import 'message_input.dart';
 import 'user.dart';
@@ -105,10 +106,13 @@ class _ChatViewState extends State<ChatView> with WidgetsBindingObserver {
                 return Expanded(
                     child: ListView.builder(
                         controller: _controller,
-                        itemCount: bubbles.length,
+                        itemCount: bubbles.length + 1,
                         itemBuilder: (BuildContext context, int index) {
+                          if (index == 0) {
+                            return GetMoreButton(service);
+                          }
                           return Container(
-                              child: BubbleWidget(bubbles[index]),
+                              child: BubbleWidget(bubbles[index - 1]),
                               padding: EdgeInsets.symmetric(horizontal: 16));
                         }));
             }

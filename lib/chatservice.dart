@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_native_timezone/flutter_native_timezone.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:stream_transform/stream_transform.dart';
 
 import 'message.dart';
 import 'user.dart';
@@ -20,8 +21,10 @@ class ChatService {
   final Geolocator geolocator;
   final Future<String> Function() getLocalTimezone;
   final DateTime now;
-  Future<DateTime> from;
+  final StreamController<DateTime> oldestMessageDateController;
   Position position;
+  DateTime latestThreshold;
+  Duration getMoreDuration = Duration(hours: 12);
 
   ChatService()
       : this.withParameters(
@@ -33,8 +36,12 @@ class ChatService {
             DateTime.now());
 
   ChatService.withParameters(this.instance, this.authInstance, this.storage,
-      this.geolocator, this.getLocalTimezone, this.now) {
-    from = getUserMap().first.then((users) async {
+      this.geolocator, this.getLocalTimezone, this.now)
+      : oldestMessageDateController = StreamController<DateTime>.broadcast() {
+    oldestMessageDateController.stream.forEach((newThreshold) {
+      latestThreshold = newThreshold;
+    });
+    getUserMap().first.then((users) async {
       final lastTalked = users[await myUid].lastTalked;
       if (lastTalked != null) {
         return lastTalked.subtract(Duration(minutes: 10));
@@ -43,6 +50,8 @@ class ChatService {
       } else {
         return DateTime.now();
       }
+    }).then((from) {
+      oldestMessageDateController.add(from);
     });
 
     maybeSubscribeToGeolocation();
@@ -59,30 +68,41 @@ class ChatService {
     });
   }
 
+  // Signals the Service to fetch more messages. The stream returned by getMessages
+  // will emit a new list of messages.
+  void getMoreMessages() async {
+    final newThreshold =
+        // avoid the race condition where latest threshold hasn't been set
+        (latestThreshold ?? await oldestMessageDateController.stream.first)
+            .subtract(getMoreDuration);
+    oldestMessageDateController.add(newThreshold);
+    // Double the duration for the next call.
+    getMoreDuration = Duration(seconds: 2 * getMoreDuration.inSeconds);
+    latestThreshold = newThreshold;
+  }
+
   Stream<List<Message>> getMessages() {
-    return from.asStream().asyncExpand((time) {
-      return getUserMap().transform(StreamTransformer.fromHandlers(handleData:
-          (Map<String, User> users, EventSink<List<Message>> sink) async {
-        instance
-            .collection('messages')
-            .where('timestamp', isGreaterThan: time)
-            .snapshots()
-            .forEach((QuerySnapshot data) {
-          final messages = data.documents.map((d) {
-            final point = d.data[LocationKey] as GeoPoint;
-            final position = point != null
-                ? Position(latitude: point.latitude, longitude: point.longitude)
-                : null;
-            return Message()
-              ..author = users[d.data['uid']]
-              ..message = d.data['content'] as String
-              ..time = (d.data['timestamp'] as Timestamp).toDate()
-              ..position = position;
-          }).toList();
-          sink.add(messages);
-        });
-      }));
-    });
+    return oldestMessageDateController.stream.combineLatest(getUserMap(),
+        (time, users) {
+      return instance
+          .collection('messages')
+          .where('timestamp', isGreaterThan: time)
+          .snapshots()
+          .map((QuerySnapshot data) {
+        final messages = data.documents.map((d) {
+          final point = d.data[LocationKey] as GeoPoint;
+          final position = point != null
+              ? Position(latitude: point.latitude, longitude: point.longitude)
+              : null;
+          return Message()
+            ..author = users[d.data['uid']]
+            ..message = d.data['content'] as String
+            ..time = (d.data['timestamp'] as Timestamp).toDate()
+            ..position = position;
+        }).toList();
+        return messages;
+      });
+    }).switchLatest();
   }
 
   Stream<List<User>> getUsers() {

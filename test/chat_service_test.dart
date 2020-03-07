@@ -177,6 +177,35 @@ void main() {
         as MockStorageReference;
     expect(fileRef.storedFile, equals(image));
   });
+
+  test('getMore gets more messages', () async {
+    final firebase = MockFirestoreInstance();
+    final auth = MockFirebaseAuth(signedIn: true);
+    final uid = (await auth.currentUser()).uid;
+    await firebase.collection('messages').add({
+      'content': 'older',
+      'uid': uid,
+      'timestamp': now.subtract(Duration(hours: 3)),
+    });
+    await firebase.collection('messages').add({
+      'content': 'newer',
+      'uid': uid,
+      'timestamp': now,
+    });
+    await firebase.collection('users').document(uid).setData({
+      'name': 'Bob',
+      'timezone': 'Europe/London',
+      'lastTalked': Timestamp.fromDate(now),
+    });
+    final service =
+        ChatService.withParameters(firebase, auth, MockFirebaseStorage(), null, null, now);
+    // Expect one, then two messages upon calling getMoreMessages.
+    expect(service.getMessages(), emitsInOrder([
+      hasLength(1),
+      hasLength(2)
+    ]));
+    service.getMoreMessages();
+  });
 }
 
 class MockGeolocator extends Mock implements Geolocator {
