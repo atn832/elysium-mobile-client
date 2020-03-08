@@ -12,12 +12,16 @@ release/
 .flutter-plugins
 .flutter-plugins-dependencies
 pubspec.lock
+Flutter.podspec
+flutter_export_environment.sh
+Podfile.lock
 
 # Android Studio settings
 .idea
 
 # Firebase key
 google-services.json
+GoogleService-Info.plist
 
 # Fastlane
 report.xml
