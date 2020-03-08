@@ -10,6 +10,11 @@ release/
 *.aab
 
 .flutter-plugins
+.flutter-plugins-dependencies
+pubspec.lock
+Flutter.podspec
+flutter_export_environment.sh
+Podfile.lock
 
 # Android Studio settings
 .idea
@@ -17,6 +22,7 @@ release/
 # Firebase key
 google-services.json
 init.js
+GoogleService-Info.plist
 
 # Fastlane
 report.xml

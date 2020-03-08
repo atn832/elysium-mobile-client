@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -7,8 +5,11 @@ import 'package:flutter/widgets.dart';
 import 'bubble_service.dart';
 import 'bubble_widget.dart';
 import 'chatservice.dart';
+import 'get_more_button.dart';
 import 'message.dart';
 import 'message_input.dart';
+import 'user.dart';
+import 'user_list_widget.dart';
 
 const platform = const MethodChannel('app.channel.shared.data');
 
@@ -61,7 +62,7 @@ class _ChatViewState extends State<ChatView> with WidgetsBindingObserver {
     });
     return Future.wait([getSharedImageFilename(), getSharedImage()])
         .then((results) async {
-      final filename = DateTime.now().toIso8601String() + '.png';//results[0];
+      final filename = DateTime.now().toIso8601String() + '.png'; //results[0];
       final imageBytes = results[1];
       if (filename != null && imageBytes != null) {
         widget._service.sendImageData(filename, imageBytes);
@@ -71,7 +72,17 @@ class _ChatViewState extends State<ChatView> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    final service = widget._service;
     return Column(children: [
+      StreamBuilder<List<User>>(
+          stream: service.getUsers(),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return Expanded(child: LinearProgressIndicator());
+            }
+            final users = snapshot.data;
+            return UserListWidget(users);
+          }),
       StreamBuilder<List<Message>>(
           stream: widget._service.getMessages(),
           builder:
@@ -95,10 +106,13 @@ class _ChatViewState extends State<ChatView> with WidgetsBindingObserver {
                 return Expanded(
                     child: ListView.builder(
                         controller: _controller,
-                        itemCount: bubbles.length,
+                        itemCount: bubbles.length + 1,
                         itemBuilder: (BuildContext context, int index) {
+                          if (index == 0) {
+                            return GetMoreButton(service);
+                          }
                           return Container(
-                              child: BubbleWidget(bubbles[index]),
+                              child: BubbleWidget(bubbles[index - 1]),
                               padding: EdgeInsets.symmetric(horizontal: 16));
                         }));
             }

@@ -6,6 +6,7 @@ import 'package:elysium/message_widget.dart';
 import 'package:elysium/user.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 import 'package:mockito/mockito.dart';
 
@@ -13,6 +14,9 @@ final now = DateTime(2019, 06, 06);
 
 void main() {
   testWidgets('displays bubbles', (WidgetTester tester) async {
+    // Initialize locale. It is normally done by main().
+    await initializeDateFormatting('fr');
+    
     final user = User()..name = 'Bob';
     final m = Message()
       ..author = user

@@ -6,6 +6,8 @@ import 'package:elysium/chatservice.dart';
 import 'package:firebase_auth_mocks/firebase_auth_mocks.dart';
 import 'package:firebase_storage_mocks/firebase_storage_mocks.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:mockito/mockito.dart';
 
 final now = DateTime(2019, 06, 06);
 
@@ -40,7 +42,7 @@ void main() {
       'name': 'Bob',
     });
     final service =
-        ChatService.withParameters(firebase, auth, MockFirebaseStorage(), now);
+        ChatService.withParameters(firebase, auth, MockFirebaseStorage(), null, null, now);
     final messages = await service.getMessages().first;
     expect(messages.length, equals(1));
     expect(messages[0].author.name, equals('Bob'));
@@ -57,7 +59,7 @@ void main() {
       'timezone': 'Europe/London',
     });
     final service =
-        ChatService.withParameters(firebase, auth, MockFirebaseStorage(), now);
+        ChatService.withParameters(firebase, auth, MockFirebaseStorage(), null, null, now);
     final users = await service.getUsers().first;
     expect(users.length, equals(1));
     expect(users[0].uid, equals(uid));
@@ -77,9 +79,53 @@ void main() {
       'timezone': 'Europe/London',
     });
     final service =
-        ChatService.withParameters(firebase, auth, MockFirebaseStorage(), now);
+        ChatService.withParameters(firebase, auth, MockFirebaseStorage(), null, null, now);
     await service.sendMessage('yes', now);
     expect(firebase.dump(), equals(expectedStateAfterSend));
+  });
+
+  test('sends location', () async {
+    final firebase = MockFirestoreInstance();
+    final auth = MockFirebaseAuth(signedIn: true);
+    final uid = (await auth.currentUser()).uid;
+    await firebase.collection('users').document(uid).setData({
+      'name': 'Bob',
+      'timezone': 'Europe/London',
+    });
+    final geolocator = new MockGeolocator();
+    
+    positionStream() async* {
+      yield Position(latitude: 30, longitude: 100);
+    }
+    when(geolocator.getPositionStream(any)).thenAnswer((_) {
+      return positionStream();
+    });
+    final service =
+        ChatService.withParameters(firebase, auth, MockFirebaseStorage(), geolocator, null, now);
+    await Future.delayed(Duration(milliseconds: 1));
+    await service.sendMessage('i am here', now);
+    final messages = await firebase.collection('messages').getDocuments();
+    final message = messages.documents.first;
+    expect(message['location'], equals(GeoPoint(30, 100)));
+  });
+
+  test('updates user on send messages', () async {
+    final firebase = MockFirestoreInstance();
+    final auth = MockFirebaseAuth(signedIn: true);
+    final uid = (await auth.currentUser()).uid;
+    await firebase.collection('users').document(uid).setData({
+      'name': 'Bob',
+      'timezone': 'Europe/London',
+    });
+    getTimezone() {
+      return Future.value('Asia/Taipei');
+    }
+    final service =
+        ChatService.withParameters(firebase, auth, MockFirebaseStorage(), null, getTimezone, now);
+    await service.sendMessage('yes', now);
+    final user = await firebase.collection('users').document(uid).get();
+    expect(user['timezone'], equals('Asia/Taipei'));
+    expect(user['lastTalked'], equals(Timestamp.fromDate(now)));
   });
 
   test('listens to messages from last talked', () async {
@@ -102,7 +148,7 @@ void main() {
       'lastTalked': Timestamp.fromDate(now),
     });
     final service =
-        ChatService.withParameters(firebase, auth, MockFirebaseStorage(), now);
+        ChatService.withParameters(firebase, auth, MockFirebaseStorage(), null, null, now);
     final messages = await service.getMessages().first;
     expect(messages[0].message, equals('newer'));
   });
@@ -117,7 +163,7 @@ void main() {
       'lastTalked': Timestamp.fromDate(now),
     });
     final storage = MockFirebaseStorage();
-    final service = ChatService.withParameters(firebase, auth, storage, now);
+    final service = ChatService.withParameters(firebase, auth, storage, null, null, now);
     final image =
         File('/storage/emulated/0/DCIM/Camera/IMG_20190609_144619.jpg');
     await service.sendImage(image);
@@ -131,4 +177,36 @@ void main() {
         as MockStorageReference;
     expect(fileRef.storedFile, equals(image));
   });
+
+  test('getMore gets more messages', () async {
+    final firebase = MockFirestoreInstance();
+    final auth = MockFirebaseAuth(signedIn: true);
+    final uid = (await auth.currentUser()).uid;
+    await firebase.collection('messages').add({
+      'content': 'older',
+      'uid': uid,
+      'timestamp': now.subtract(Duration(hours: 3)),
+    });
+    await firebase.collection('messages').add({
+      'content': 'newer',
+      'uid': uid,
+      'timestamp': now,
+    });
+    await firebase.collection('users').document(uid).setData({
+      'name': 'Bob',
+      'timezone': 'Europe/London',
+      'lastTalked': Timestamp.fromDate(now),
+    });
+    final service =
+        ChatService.withParameters(firebase, auth, MockFirebaseStorage(), null, null, now);
+    // Expect one, then two messages upon calling getMoreMessages.
+    expect(service.getMessages(), emitsInOrder([
+      hasLength(1),
+      hasLength(2)
+    ]));
+    service.getMoreMessages();
+  });
+}
+
+class MockGeolocator extends Mock implements Geolocator {
 }
