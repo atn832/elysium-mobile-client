@@ -21,7 +21,6 @@ class UserListWidget extends StatelessWidget {
         DateTime.now().difference(user.lastTalked) < lastTalkedThreshold);
     return Container(
         padding: EdgeInsets.all(16),
-        color: Colors.white,
         child: Row(children: [
           for (final user in activeUsers)
             Card(

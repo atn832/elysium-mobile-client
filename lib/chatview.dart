@@ -104,7 +104,9 @@ class _ChatViewState extends State<ChatView> with WidgetsBindingObserver {
                 }
                 final bubbles = BubbleService.getBubbles(snapshot.data);
                 return Expanded(
-                    child: ListView.builder(
+                    child: Container(
+                      color: Theme.of(context).chipTheme.backgroundColor,
+                      child: ListView.builder(
                         controller: _controller,
                         itemCount: bubbles.length + 1,
                         itemBuilder: (BuildContext context, int index) {
@@ -114,11 +116,10 @@ class _ChatViewState extends State<ChatView> with WidgetsBindingObserver {
                           return Container(
                               child: BubbleWidget(bubbles[index - 1]),
                               padding: EdgeInsets.symmetric(horizontal: 16));
-                        }));
+                        })));
             }
           }),
       Container(
-        color: Color.fromARGB(255, 255, 255, 255),
         padding: EdgeInsets.only(left: 16, bottom: 16),
         child: MessageInput(widget._service),
       ),
