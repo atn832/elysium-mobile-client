@@ -3,73 +3,106 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_native_timezone/flutter_native_timezone.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:stream_transform/stream_transform.dart';
 
 import 'message.dart';
 import 'user.dart';
+
+const LocationKey = 'location';
+const TimezoneKey = 'timezone';
 
 class ChatService {
   final Firestore instance;
   final FirebaseAuth authInstance;
   final FirebaseStorage storage;
+  final Geolocator geolocator;
+  final Future<String> Function() getLocalTimezone;
   final DateTime now;
-  Future<DateTime> from;
+  final StreamController<DateTime> oldestMessageDateController;
+  Position position;
+  DateTime latestThreshold;
+  Duration getMoreDuration = Duration(hours: 12);
 
   ChatService()
-      : this.withParameters(Firestore.instance, FirebaseAuth.instance,
-            FirebaseStorage.instance, DateTime.now());
+      : this.withParameters(
+            Firestore.instance,
+            FirebaseAuth.instance,
+            FirebaseStorage.instance,
+            Geolocator(),
+            FlutterNativeTimezone.getLocalTimezone,
+            DateTime.now());
 
-  ChatService.withParameters(
-      this.instance, this.authInstance, this.storage, this.now) {
-    from = getUserMap().first.then((users) async {
+  ChatService.withParameters(this.instance, this.authInstance, this.storage,
+      this.geolocator, this.getLocalTimezone, this.now)
+      : oldestMessageDateController = StreamController<DateTime>.broadcast() {
+    oldestMessageDateController.stream.forEach((newThreshold) {
+      latestThreshold = newThreshold;
+    });
+    getUserMap().first.then((users) async {
       final lastTalked = users[await myUid].lastTalked;
       if (lastTalked != null) {
-        return lastTalked.subtract(Duration(minutes: 5));
+        return lastTalked.subtract(Duration(minutes: 10));
       } else if (now != null) {
         return now.subtract(Duration(days: 1));
       } else {
         return DateTime.now();
       }
+    }).then((from) {
+      oldestMessageDateController.add(from);
     });
 
-    subscribeToGeolocation();
+    maybeSubscribeToGeolocation();
   }
 
-  subscribeToGeolocation() {
-    final geolocator = Geolocator();
+  maybeSubscribeToGeolocation() async {
     final locationOptions =
         LocationOptions(accuracy: LocationAccuracy.high, distanceFilter: 10);
-    StreamSubscription<Position> positionStream = geolocator
-        .getPositionStream(locationOptions)
-        .listen((Position position) {
-      print(position == null
-          ? 'Unknown'
-          : position.latitude.toString() +
-              ', ' +
-              position.longitude.toString());
+    if (geolocator == null) {
+      return;
+    }
+    geolocator.getPositionStream(locationOptions).listen((Position position) {
+      this.position = position;
     });
+  }
+
+  // Signals the Service to fetch more messages. The stream returned by getMessages
+  // will emit a new list of messages.
+  void getMoreMessages() async {
+    final newThreshold =
+        // avoid the race condition where latest threshold hasn't been set
+        (latestThreshold ?? await oldestMessageDateController.stream.first)
+            .subtract(getMoreDuration);
+    oldestMessageDateController.add(newThreshold);
+    // Double the duration for the next call.
+    getMoreDuration = Duration(seconds: 2 * getMoreDuration.inSeconds);
+    latestThreshold = newThreshold;
   }
 
   Stream<List<Message>> getMessages() {
-    return from.asStream().asyncExpand((time) {
-      return getUserMap().transform(StreamTransformer.fromHandlers(handleData:
-          (Map<String, User> users, EventSink<List<Message>> sink) async {
-        instance
-            .collection('messages')
-            .where('timestamp', isGreaterThan: time)
-            .snapshots()
-            .forEach((QuerySnapshot data) {
-          final messages = data.documents.map((d) {
-            return Message()
-              ..author = users[d.data['uid']]
-              ..message = d.data['content'] as String
-              ..time = (d.data['timestamp'] as Timestamp).toDate();
-          }).toList();
-          sink.add(messages);
-        });
-      }));
-    });
+    return oldestMessageDateController.stream.combineLatest(getUserMap(),
+        (time, users) {
+      return instance
+          .collection('messages')
+          .where('timestamp', isGreaterThan: time)
+          .snapshots()
+          .map((QuerySnapshot data) {
+        final messages = data.documents.map((d) {
+          final point = d.data[LocationKey] as GeoPoint;
+          final position = point != null
+              ? Position(latitude: point.latitude, longitude: point.longitude)
+              : null;
+          return Message()
+            ..author = users[d.data['uid']]
+            ..message = d.data['content'] as String
+            ..time = (d.data['timestamp'] as Timestamp).toDate()
+            ..position = position;
+        }).toList();
+        return messages;
+      });
+    }).switchLatest();
   }
 
   Stream<List<User>> getUsers() {
@@ -105,14 +138,25 @@ class ChatService {
 
   Future<void> sendMessage(String message, [DateTime now]) async {
     final timestamp = now ?? DateTime.now();
-    await instance.collection('messages').add({
+    final Map<String, dynamic> data = {
       'uid': await myUid,
       'content': message,
       'timestamp': timestamp,
-    });
-    await instance.collection('users').document(await myUid).setData({
+    };
+    if (position != null) {
+      data[LocationKey] = GeoPoint(position.latitude, position.longitude);
+    }
+    await instance.collection('messages').add(data);
+    final Map<String, dynamic> userData = {
       'lastTalked': timestamp,
-    }, merge: true);
+    };
+    if (getLocalTimezone != null) {
+      userData[TimezoneKey] = await getLocalTimezone();
+    }
+    await instance
+        .collection('users')
+        .document(await myUid)
+        .setData(userData, merge: true);
   }
 
   Future<void> sendImage(File image) async {
