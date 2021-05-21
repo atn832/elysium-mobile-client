@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:image_picker/image_picker.dart';
@@ -40,9 +42,9 @@ class _MessageInputState extends State<MessageInput> {
           icon: Icon(Icons.image),
           onPressed: () async {
             final image =
-                await ImagePicker.pickImage(source: ImageSource.gallery);
+                await ImagePicker().getImage(source: ImageSource.gallery);
             if (image == null) return;
-            widget._chatService.sendImage(image);
+            widget._chatService.sendImage(File(image.path));
           },
         ),
         IconButton(

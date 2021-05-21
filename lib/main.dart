@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -9,13 +10,14 @@ import 'package:timezone/data/latest.dart';
 import 'chatview.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
-final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
+final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
 const AppLocale = 'fr';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   initializeTimeZones();
   await initializeDateFormatting(AppLocale);
+  await Firebase.initializeApp();
   runApp(new MyApp());
 }
 
@@ -62,7 +64,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
 
-    widget.auth.onAuthStateChanged.listen((user) {
+    widget.auth.authStateChanges().listen((user) {
       setState(() {
         signedIn = user != null;
       });
@@ -87,7 +89,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     child: Text('Sign in'),
                     onPressed: () async {
                       await _handleSignIn(widget.auth, widget.googleSignIn);
-                      _firebaseMessaging.requestNotificationPermissions();
+                      _firebaseMessaging.requestPermission();
                     })
               ],
             ))
@@ -101,16 +103,15 @@ Future<AuthCredential> _signInWithGoogle(
   final GoogleSignInAccount googleUser = await googleSignIn.signIn();
   final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
 
-  final AuthCredential credential = GoogleAuthProvider.getCredential(
+  final AuthCredential credential = GoogleAuthProvider.credential(
     accessToken: googleAuth.accessToken,
     idToken: googleAuth.idToken,
   );
   return credential;
 }
 
-Future<FirebaseUser> _handleSignIn(
-    FirebaseAuth auth, GoogleSignIn googleSignIn) async {
+Future<User> _handleSignIn(FirebaseAuth auth, GoogleSignIn googleSignIn) async {
   final credential = await _signInWithGoogle(auth, googleSignIn);
-  final FirebaseUser user = (await auth.signInWithCredential(credential)).user;
+  final User user = (await auth.signInWithCredential(credential)).user;
   return user;
 }

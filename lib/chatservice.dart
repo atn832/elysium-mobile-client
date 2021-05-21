@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart' hide User;
 import 'package:flutter_native_timezone/flutter_native_timezone.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -15,7 +15,7 @@ const LocationKey = 'location';
 const TimezoneKey = 'timezone';
 
 class ChatService {
-  final Firestore instance;
+  final FirebaseFirestore instance;
   final FirebaseAuth authInstance;
   final FirebaseStorage storage;
   final Geolocator geolocator;
@@ -28,7 +28,7 @@ class ChatService {
 
   ChatService()
       : this.withParameters(
-            Firestore.instance,
+            FirebaseFirestore.instance,
             FirebaseAuth.instance,
             FirebaseStorage.instance,
             Geolocator(),
@@ -42,7 +42,7 @@ class ChatService {
       latestThreshold = newThreshold;
     });
     getUserMap().first.then((users) async {
-      final lastTalked = users[await myUid].lastTalked;
+      final lastTalked = users[myUid].lastTalked;
       if (lastTalked != null) {
         return lastTalked.subtract(Duration(minutes: 10));
       } else if (now != null) {
@@ -58,12 +58,9 @@ class ChatService {
   }
 
   maybeSubscribeToGeolocation() async {
-    final locationOptions =
-        LocationOptions(accuracy: LocationAccuracy.high, distanceFilter: 10);
-    if (geolocator == null) {
-      return;
-    }
-    geolocator.getPositionStream(locationOptions).listen((Position position) {
+    Geolocator.getPositionStream(
+            desiredAccuracy: LocationAccuracy.high, distanceFilter: 10)
+        .listen((Position position) {
       this.position = position;
     });
   }
@@ -88,16 +85,16 @@ class ChatService {
           .collection('messages')
           .where('timestamp', isGreaterThan: time)
           .snapshots()
-          .map((QuerySnapshot data) {
-        final messages = data.documents.map((d) {
-          final point = d.data[LocationKey] as GeoPoint;
+          .map((QuerySnapshot<Map<String, dynamic>> data) {
+        final messages = data.docs.map((d) {
+          final point = d.data()[LocationKey] as GeoPoint;
           final position = point != null
               ? Position(latitude: point.latitude, longitude: point.longitude)
               : null;
           return Message()
-            ..author = users[d.data['uid']]
-            ..message = d.data['content'] as String
-            ..time = (d.data['timestamp'] as Timestamp).toDate()
+            ..author = users[d.data()['uid']]
+            ..message = d.data()['content'] as String
+            ..time = (d.data()['timestamp'] as Timestamp).toDate()
             ..position = position;
         }).toList();
         return messages;
@@ -107,17 +104,18 @@ class ChatService {
 
   Stream<List<User>> getUsers() {
     return instance.collection('users').snapshots().transform(
-        StreamTransformer.fromHandlers(
-            handleData: (QuerySnapshot data, EventSink<List<User>> sink) {
-      final users = data.documents.map((d) {
+        StreamTransformer.fromHandlers(handleData:
+            (QuerySnapshot<Map<String, dynamic>> data,
+                EventSink<List<User>> sink) {
+      final users = data.docs.map((d) {
         DateTime lastTalked;
-        if (d.data.containsKey('lastTalked')) {
-          lastTalked = (d.data['lastTalked'] as Timestamp).toDate();
+        if (d.data().containsKey('lastTalked')) {
+          lastTalked = (d.data()['lastTalked'] as Timestamp).toDate();
         }
         return User()
-          ..uid = d.documentID
-          ..name = d.data['name'] as String
-          ..timezone = d.data['timezone'] as String
+          ..uid = d.id
+          ..name = d.data()['name'] as String
+          ..timezone = d.data()['timezone'] as String
           ..lastTalked = lastTalked;
       }).toList();
       sink.add(users);
@@ -139,7 +137,7 @@ class ChatService {
   Future<void> sendMessage(String message, [DateTime now]) async {
     final timestamp = now ?? DateTime.now();
     final Map<String, dynamic> data = {
-      'uid': await myUid,
+      'uid': myUid,
       'content': message,
       'timestamp': timestamp,
     };
@@ -155,31 +153,29 @@ class ChatService {
     }
     await instance
         .collection('users')
-        .document(await myUid)
-        .setData(userData, merge: true);
+        .doc(myUid)
+        .set(userData, SetOptions(merge: true));
   }
 
   Future<void> sendImage(File image) async {
     final filename =
         removeSpaces(image.path.substring(image.path.lastIndexOf('/') + 1));
-    final StorageReference storageRef = storage.ref().child(filename);
+    final Reference storageRef = storage.ref().child(filename);
     final task = storageRef.putFile(image);
     return finalizeSendImageTask(storageRef, task);
   }
 
   Future<void> sendImageData(String imageFilename, List<int> data) async {
     final filename = removeSpaces(imageFilename);
-    final StorageReference storageRef = storage.ref().child(filename);
+    final Reference storageRef = storage.ref().child(filename);
     final task = storageRef.putData(data);
     return finalizeSendImageTask(storageRef, task);
   }
 
-  Future<void> finalizeSendImageTask(
-      StorageReference storageRef, StorageUploadTask task) async {
+  Future<void> finalizeSendImageTask(Reference storageRef, Task task) async {
     // TODO: show progress and success.
-    await task.onComplete;
-    return sendMessage(
-        'gs://' + await storageRef.getBucket() + '/' + storageRef.path);
+    await task;
+    return sendMessage(storageRef.fullPath);
   }
 
   String removeSpaces(String filename) {
@@ -187,10 +183,10 @@ class ChatService {
   }
 
   Future<String> getImageUri(String url) async {
-    final ref = await storage.getReferenceFromUrl(url);
+    final ref = storage.refFromURL(url);
     final downloadUrl = await ref.getDownloadURL();
-    return downloadUrl as String;
+    return downloadUrl;
   }
 
-  Future<String> get myUid async => (await authInstance.currentUser()).uid;
+  String get myUid => authInstance.currentUser.uid;
 }
