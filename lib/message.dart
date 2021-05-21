@@ -1,10 +1,9 @@
-import 'package:geolocator/geolocator.dart';
-
+import 'position.dart';
 import 'user.dart';
 
 class Message {
-  String message;
-  DateTime time;
-  User author;
-  Position position;
+  late String message;
+  late DateTime time;
+  late User author;
+  Position? position;
 }

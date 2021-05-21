@@ -1,8 +1,8 @@
 import 'package:elysium/bubble_service.dart';
 import 'package:elysium/message.dart';
+import 'package:elysium/position.dart';
 import 'package:elysium/user.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:geolocator/geolocator.dart';
 
 final now = DateTime(2019, 06, 06);
 

@@ -1,14 +1,16 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide User;
 import 'package:flutter_native_timezone/flutter_native_timezone.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:geolocator/geolocator.dart' as Geolocator;
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:stream_transform/stream_transform.dart';
 
 import 'message.dart';
+import 'position.dart';
 import 'user.dart';
 
 const LocationKey = 'location';
@@ -18,12 +20,12 @@ class ChatService {
   final FirebaseFirestore instance;
   final FirebaseAuth authInstance;
   final FirebaseStorage storage;
-  final Geolocator geolocator;
-  final Future<String> Function() getLocalTimezone;
-  final DateTime now;
+  final Geolocator.Geolocator? geolocator;
+  final Future<String> Function()? getLocalTimezone;
+  final DateTime? now;
   final StreamController<DateTime> oldestMessageDateController;
-  Position position;
-  DateTime latestThreshold;
+  Position? position;
+  DateTime? latestThreshold;
   Duration getMoreDuration = Duration(hours: 12);
 
   ChatService()
@@ -31,7 +33,7 @@ class ChatService {
             FirebaseFirestore.instance,
             FirebaseAuth.instance,
             FirebaseStorage.instance,
-            Geolocator(),
+            Geolocator.Geolocator(),
             FlutterNativeTimezone.getLocalTimezone,
             DateTime.now());
 
@@ -42,11 +44,11 @@ class ChatService {
       latestThreshold = newThreshold;
     });
     getUserMap().first.then((users) async {
-      final lastTalked = users[myUid].lastTalked;
+      final lastTalked = users[myUid]?.lastTalked;
       if (lastTalked != null) {
         return lastTalked.subtract(Duration(minutes: 10));
       } else if (now != null) {
-        return now.subtract(Duration(days: 1));
+        return now!.subtract(Duration(days: 1));
       } else {
         return DateTime.now();
       }
@@ -58,10 +60,12 @@ class ChatService {
   }
 
   maybeSubscribeToGeolocation() async {
-    Geolocator.getPositionStream(
-            desiredAccuracy: LocationAccuracy.high, distanceFilter: 10)
-        .listen((Position position) {
-      this.position = position;
+    Geolocator.Geolocator.getPositionStream(
+            desiredAccuracy: Geolocator.LocationAccuracy.high,
+            distanceFilter: 10)
+        .listen((Geolocator.Position position) {
+      this.position =
+          Position(latitude: position.latitude, longitude: position.longitude);
     });
   }
 
@@ -80,19 +84,23 @@ class ChatService {
 
   Stream<List<Message>> getMessages() {
     return oldestMessageDateController.stream.combineLatest(getUserMap(),
-        (time, users) {
+        (time, Map<String, User> users) {
       return instance
           .collection('messages')
           .where('timestamp', isGreaterThan: time)
           .snapshots()
           .map((QuerySnapshot<Map<String, dynamic>> data) {
         final messages = data.docs.map((d) {
-          final point = d.data()[LocationKey] as GeoPoint;
+          final point = d.data()[LocationKey] as GeoPoint?;
           final position = point != null
-              ? Position(latitude: point.latitude, longitude: point.longitude)
+              ? Position(
+                  latitude: point.latitude,
+                  longitude: point.longitude,
+                )
               : null;
+          final uid = d.data()['uid'] as String;
           return Message()
-            ..author = users[d.data()['uid']]
+            ..author = users[uid]!
             ..message = d.data()['content'] as String
             ..time = (d.data()['timestamp'] as Timestamp).toDate()
             ..position = position;
@@ -108,7 +116,7 @@ class ChatService {
             (QuerySnapshot<Map<String, dynamic>> data,
                 EventSink<List<User>> sink) {
       final users = data.docs.map((d) {
-        DateTime lastTalked;
+        DateTime? lastTalked;
         if (d.data().containsKey('lastTalked')) {
           lastTalked = (d.data()['lastTalked'] as Timestamp).toDate();
         }
@@ -134,7 +142,7 @@ class ChatService {
     }));
   }
 
-  Future<void> sendMessage(String message, [DateTime now]) async {
+  Future<void> sendMessage(String message, [DateTime? now]) async {
     final timestamp = now ?? DateTime.now();
     final Map<String, dynamic> data = {
       'uid': myUid,
@@ -142,14 +150,14 @@ class ChatService {
       'timestamp': timestamp,
     };
     if (position != null) {
-      data[LocationKey] = GeoPoint(position.latitude, position.longitude);
+      data[LocationKey] = GeoPoint(position!.latitude, position!.longitude);
     }
     await instance.collection('messages').add(data);
     final Map<String, dynamic> userData = {
       'lastTalked': timestamp,
     };
     if (getLocalTimezone != null) {
-      userData[TimezoneKey] = await getLocalTimezone();
+      userData[TimezoneKey] = await getLocalTimezone!();
     }
     await instance
         .collection('users')
@@ -165,7 +173,7 @@ class ChatService {
     return finalizeSendImageTask(storageRef, task);
   }
 
-  Future<void> sendImageData(String imageFilename, List<int> data) async {
+  Future<void> sendImageData(String imageFilename, Uint8List data) async {
     final filename = removeSpaces(imageFilename);
     final Reference storageRef = storage.ref().child(filename);
     final task = storageRef.putData(data);
@@ -175,7 +183,7 @@ class ChatService {
   Future<void> finalizeSendImageTask(Reference storageRef, Task task) async {
     // TODO: show progress and success.
     await task;
-    return sendMessage(storageRef.fullPath);
+    return sendMessage('gs://' + storageRef.bucket + '/' + storageRef.fullPath);
   }
 
   String removeSpaces(String filename) {
@@ -188,5 +196,5 @@ class ChatService {
     return downloadUrl;
   }
 
-  String get myUid => authInstance.currentUser.uid;
+  String? get myUid => authInstance.currentUser?.uid;
 }

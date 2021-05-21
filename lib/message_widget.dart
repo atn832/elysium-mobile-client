@@ -22,7 +22,7 @@ class MessageWidget extends StatefulWidget {
 }
 
 class _MessageWidgetState extends State<MessageWidget> {
-  String imageUrl;
+  String? imageUrl;
 
   @override
   void initState() {
@@ -46,7 +46,7 @@ class _MessageWidgetState extends State<MessageWidget> {
   Widget build(BuildContext context) {
     if (isFirebaseImage) {
       if (imageUrl != null)
-        return widget.imageFactory.createImage(imageUrl);
+        return widget.imageFactory.createImage(imageUrl!);
       else
         return Row(
           children: [

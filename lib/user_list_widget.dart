@@ -18,7 +18,7 @@ class UserListWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final activeUsers = users.where((user) =>
         user.lastTalked != null &&
-        DateTime.now().difference(user.lastTalked) < lastTalkedThreshold);
+        DateTime.now().difference(user.lastTalked!) < lastTalkedThreshold);
     return Container(
         padding: EdgeInsets.all(16),
         color: Colors.white,
@@ -33,7 +33,7 @@ class UserListWidget extends StatelessWidget {
                     Text(user.name),
                     if (user.timezone != null) ...[
                       SizedBox(width: 16),
-                      LocalTimeWidget(user.timezone)
+                      if (user.timezone != null) LocalTimeWidget(user.timezone!)
                     ]
                   ],
                 ),

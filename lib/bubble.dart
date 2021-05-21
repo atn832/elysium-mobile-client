@@ -1,10 +1,9 @@
-import 'package:geolocator/geolocator.dart';
-
 import 'message.dart';
+import 'position.dart';
 import 'user.dart';
 
 class Bubble {
-  User author;
-  List<Message> messages;
-  Position position;
+  late User author;
+  late List<Message> messages;
+  Position? position;
 }

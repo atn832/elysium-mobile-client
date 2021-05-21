@@ -1,6 +1,6 @@
 class User {
-  String uid;
-  String name;
-  String timezone;
-  DateTime lastTalked;
+  late String uid;
+  late String name;
+  String? timezone;
+  DateTime? lastTalked;
 }

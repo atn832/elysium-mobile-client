@@ -4,7 +4,7 @@ import 'message.dart';
 const NewBubbleThreshold = Duration(minutes: 5);
 
 class BubbleService {
-  static List<Bubble> getBubbles(List<Message> messages) {
+  static List<Bubble> getBubbles(List<Message>? messages) {
     if (messages == null) return [];
 
     final bubbles = <Bubble>[];

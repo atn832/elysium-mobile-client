@@ -32,7 +32,7 @@ void main() {
   test('returns messages', () async {
     final firebase = FakeFirebaseFirestore();
     final auth = MockFirebaseAuth(signedIn: true);
-    final uid = auth.currentUser.uid;
+    final uid = auth.currentUser!.uid;
     await firebase.collection('messages').add({
       'content': 'hello!',
       'uid': uid,
@@ -53,7 +53,7 @@ void main() {
   test('returns users', () async {
     final firebase = FakeFirebaseFirestore();
     final auth = MockFirebaseAuth(signedIn: true);
-    final uid = auth.currentUser.uid;
+    final uid = auth.currentUser!.uid;
     await firebase.collection('users').doc(uid).set({
       'name': 'Bob',
       'timezone': 'Europe/London',
@@ -67,13 +67,13 @@ void main() {
 
     final userMap = await service.getUserMap().first;
     expect(userMap.length, equals(1));
-    expect(userMap[uid].name, equals('Bob'));
+    expect(userMap[uid]!.name, equals('Bob'));
   });
 
   test('sends messages', () async {
     final firebase = FakeFirebaseFirestore();
     final auth = MockFirebaseAuth(signedIn: true);
-    final uid = auth.currentUser.uid;
+    final uid = auth.currentUser!.uid;
     await firebase.collection('users').doc(uid).set({
       'name': 'Bob',
       'timezone': 'Europe/London',
@@ -87,7 +87,7 @@ void main() {
   test('sends location', () async {
     final firebase = FakeFirebaseFirestore();
     final auth = MockFirebaseAuth(signedIn: true);
-    final uid = auth.currentUser.uid;
+    final uid = auth.currentUser!.uid;
     await firebase.collection('users').doc(uid).set({
       'name': 'Bob',
       'timezone': 'Europe/London',
@@ -95,7 +95,15 @@ void main() {
     final geolocator = new MockGeolocator();
 
     positionStream() async* {
-      yield Position(latitude: 30, longitude: 100);
+      yield Position(
+          latitude: 30,
+          longitude: 100,
+          accuracy: 0,
+          altitude: 0,
+          heading: 0,
+          speed: 0,
+          speedAccuracy: 0,
+          timestamp: null);
     }
 
     when(Geolocator.getPositionStream()).thenAnswer((_) {
@@ -113,7 +121,7 @@ void main() {
   test('updates user on send messages', () async {
     final firebase = FakeFirebaseFirestore();
     final auth = MockFirebaseAuth(signedIn: true);
-    final uid = auth.currentUser.uid;
+    final uid = auth.currentUser!.uid;
     await firebase.collection('users').doc(uid).set({
       'name': 'Bob',
       'timezone': 'Europe/London',
@@ -133,7 +141,7 @@ void main() {
   test('listens to messages from last talked', () async {
     final firebase = FakeFirebaseFirestore();
     final auth = MockFirebaseAuth(signedIn: true);
-    final uid = auth.currentUser.uid;
+    final uid = auth.currentUser!.uid;
     await firebase.collection('messages').add({
       'content': 'hello!',
       'uid': uid,
@@ -158,7 +166,7 @@ void main() {
   test('sends images', () async {
     final firebase = FakeFirebaseFirestore();
     final auth = MockFirebaseAuth(signedIn: true);
-    final uid = auth.currentUser.uid;
+    final uid = auth.currentUser!.uid;
     await firebase.collection('users').doc(uid).set({
       'name': 'Bob',
       'timezone': 'Europe/London',
@@ -183,7 +191,7 @@ void main() {
   test('getMore gets more messages', () async {
     final firebase = FakeFirebaseFirestore();
     final auth = MockFirebaseAuth(signedIn: true);
-    final uid = auth.currentUser.uid;
+    final uid = auth.currentUser!.uid;
     await firebase.collection('messages').add({
       'content': 'older',
       'uid': uid,

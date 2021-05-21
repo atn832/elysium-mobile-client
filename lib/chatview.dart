@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -33,7 +35,7 @@ class _ChatViewState extends State<ChatView> with WidgetsBindingObserver {
   @override
   void initState() {
     maybeSendSharedData();
-    WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance?.addObserver(this);
     // Update stickToBottom flag.
     _controller.addListener(() {
       stickToBottom = _controller.position.extentAfter == 0;
@@ -44,7 +46,7 @@ class _ChatViewState extends State<ChatView> with WidgetsBindingObserver {
   @override
   void dispose() {
     super.dispose();
-    WidgetsBinding.instance.removeObserver(this);
+    WidgetsBinding.instance?.removeObserver(this);
   }
 
   @override
@@ -62,11 +64,12 @@ class _ChatViewState extends State<ChatView> with WidgetsBindingObserver {
     });
     return Future.wait([getSharedImageFilename(), getSharedImage()])
         .then((results) async {
-      final filename = DateTime.now().toIso8601String() + '.png'; //results[0];
-      final imageBytes = results[1];
-      if (filename != null && imageBytes != null) {
-        widget._service.sendImageData(filename, imageBytes);
+      if (results[0] == null || results[1] == null) {
+        return;
       }
+      final filename = DateTime.now().toIso8601String() + '.png';
+      final imageBytes = results[1] as Uint8List;
+      widget._service.sendImageData(filename, imageBytes);
     });
   }
 
@@ -80,7 +83,7 @@ class _ChatViewState extends State<ChatView> with WidgetsBindingObserver {
             if (!snapshot.hasData) {
               return Expanded(child: LinearProgressIndicator());
             }
-            final users = snapshot.data;
+            final users = snapshot.data!;
             return UserListWidget(users);
           }),
       StreamBuilder<List<Message>>(
@@ -98,11 +101,11 @@ class _ChatViewState extends State<ChatView> with WidgetsBindingObserver {
                 // Scroll down on redraw.
                 if (stickToBottom) {
                   WidgetsBinding.instance
-                      .addPostFrameCallback((Duration timeStamp) {
+                      ?.addPostFrameCallback((Duration timeStamp) {
                     scrollDown();
                   });
                 }
-                final bubbles = BubbleService.getBubbles(snapshot.data);
+                final bubbles = BubbleService.getBubbles(snapshot.data!);
                 return Expanded(
                     child: ListView.builder(
                         controller: _controller,
@@ -129,15 +132,15 @@ class _ChatViewState extends State<ChatView> with WidgetsBindingObserver {
     _controller.jumpTo(_controller.position.maxScrollExtent);
   }
 
-  Future<String> getSharedText() async {
+  Future<String?> getSharedText() async {
     return await platform.invokeMethod("getSharedText");
   }
 
-  Future<String> getSharedImageFilename() async {
+  Future<String?> getSharedImageFilename() async {
     return platform.invokeMethod("getSharedImageFilename");
   }
 
-  Future<List<int>> getSharedImage() async {
+  Future<List<int>?> getSharedImage() async {
     return platform.invokeMethod("getSharedImage");
   }
 }

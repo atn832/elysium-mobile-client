@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:geocoder/geocoder.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 
 import 'bubble.dart';
 import 'main.dart';
 import 'message_widget.dart';
+import 'position.dart';
 
 class BubbleWidget extends StatefulWidget {
   final Bubble bubble;
@@ -20,13 +20,12 @@ class BubbleWidget extends StatefulWidget {
 }
 
 class _BubbleWidgetState extends State<BubbleWidget> {
-  DateFormat timeFormat;
-  DateFormat dateTimeFormat;
+  DateFormat? timeFormat;
+  DateFormat? dateTimeFormat;
 
   @override
   void initState() {
-    initializeDateFormatting(AppLocale
-    ).then((_) {
+    initializeDateFormatting(AppLocale).then((_) {
       if (!mounted) return;
 
       setState(() {
@@ -73,13 +72,13 @@ class _BubbleWidgetState extends State<BubbleWidget> {
                           Row(
                               mainAxisAlignment: MainAxisAlignment.end,
                               children: [
-                                PositionWidget(b.position),
+                                PositionWidget(b.position!),
                               ]),
                         if (timeFormat != null)
                           Row(
                               mainAxisAlignment: MainAxisAlignment.end,
                               children: [
-                                Text(formatter.format(bubbleTime)),
+                                Text(formatter!.format(bubbleTime)),
                               ])
                       ])))),
     ]);
@@ -102,7 +101,9 @@ class PositionWidget extends StatelessWidget {
           }
           final addresses = snapshot.data;
           if (addresses == null || addresses.isEmpty) {
-            return Text(coordinates.latitude.toStringAsFixed(2) + ', ' + coordinates.longitude.toStringAsFixed(2));
+            return Text(coordinates.latitude.toStringAsFixed(2) +
+                ', ' +
+                coordinates.longitude.toStringAsFixed(2));
           }
           final address = addresses.first;
           print(address.toMap());
@@ -111,7 +112,8 @@ class PositionWidget extends StatelessWidget {
             address.locality,
             address.subAdminArea,
             address.adminArea,
-          ].where((element) => element != null);
+          ].where((/* geocoder's Strings are nullable */ String? element) =>
+              element != null && element.isNotEmpty);
           return Text(components.join(', '));
         });
   }
