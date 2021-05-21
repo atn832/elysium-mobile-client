@@ -106,8 +106,7 @@ class PositionWidget extends StatelessWidget {
       return SynchronousPositionWidget(coordinates, addresses);
     }
     return FutureBuilder<List<Address>>(
-        future: Future.delayed(Duration(seconds: 1)).then(
-            (_) => Geocoder.local.findAddressesFromCoordinates(coordinates)),
+        future: Geocoder.local.findAddressesFromCoordinates(coordinates),
         builder: (context, snapshot) {
           if (snapshot.connectionState != ConnectionState.done) {
             return Expanded(child: LinearProgressIndicator());
