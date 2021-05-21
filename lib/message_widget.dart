@@ -1,5 +1,5 @@
+import 'package:extended_image/extended_image.dart';
 import 'package:flutter/material.dart';
-import 'package:transparent_image/transparent_image.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'chatservice.dart';
@@ -68,17 +68,11 @@ class _MessageWidgetState extends State<MessageWidget> {
 
 class ImageFactory {
   Widget createImage(String url) {
-    return Stack(
-      children: <Widget>[
-        Container(
-          padding: EdgeInsets.all(16),
-          child: CircularProgressIndicator(),
-        ),
-        FadeInImage.memoryNetwork(
-          placeholder: kTransparentImage,
-          image: url,
-        ),
-      ],
+    return ExtendedImage.network(
+      url,
+      fit: BoxFit.contain,
+      mode: ExtendedImageMode.gesture,
+      initGestureConfigHandler: (state) => GestureConfig(),
     );
   }
 }
