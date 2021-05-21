@@ -1,5 +1,5 @@
-import 'package:extended_image/extended_image.dart';
 import 'package:flutter/material.dart';
+import 'package:octo_image/octo_image.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'chatservice.dart';
@@ -68,11 +68,10 @@ class _MessageWidgetState extends State<MessageWidget> {
 
 class ImageFactory {
   Widget createImage(String url) {
-    return ExtendedImage.network(
-      url,
-      fit: BoxFit.contain,
-      mode: ExtendedImageMode.gesture,
-      initGestureConfigHandler: (state) => GestureConfig(),
+    return OctoImage(
+      image: NetworkImage(url),
+      progressIndicatorBuilder:
+          OctoProgressIndicator.circularProgressIndicator(),
     );
   }
 }
