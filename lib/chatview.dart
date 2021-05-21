@@ -83,7 +83,7 @@ class _ChatViewState extends State<ChatView> with WidgetsBindingObserver {
             if (!snapshot.hasData) {
               return Expanded(child: LinearProgressIndicator());
             }
-            final users = snapshot.data!;
+            final users = snapshot.data;
             return UserListWidget(users);
           }),
       StreamBuilder<List<Message>>(
@@ -105,7 +105,7 @@ class _ChatViewState extends State<ChatView> with WidgetsBindingObserver {
                     scrollDown();
                   });
                 }
-                final bubbles = BubbleService.getBubbles(snapshot.data!);
+                final bubbles = BubbleService.getBubbles(snapshot.data);
                 return Expanded(
                     child: ListView.builder(
                         controller: _controller,

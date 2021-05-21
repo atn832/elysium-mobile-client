@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide User;
 import 'package:flutter_native_timezone/flutter_native_timezone.dart';
 import 'package:geolocator/geolocator.dart' as Geolocator;
@@ -31,6 +32,7 @@ class ChatService {
   ChatService()
       : this.withParameters(
             FirebaseFirestore.instance,
+            // FakeFirebaseFirestore(), // Offline testing
             FirebaseAuth.instance,
             FirebaseStorage.instance,
             Geolocator.Geolocator(),
@@ -98,9 +100,9 @@ class ChatService {
                   longitude: point.longitude,
                 )
               : null;
-          final uid = d.data()['uid'] as String;
+          final uid = d.data()['uid'] as String?;
           return Message()
-            ..author = users[uid]!
+            ..author = users[uid] ?? (User()..name = uid ?? '?')
             ..message = d.data()['content'] as String
             ..time = (d.data()['timestamp'] as Timestamp).toDate()
             ..position = position;
@@ -122,7 +124,7 @@ class ChatService {
         }
         return User()
           ..uid = d.id
-          ..name = d.data()['name'] as String
+          ..name = d.data()['name'] as String?
           ..timezone = d.data()['timezone'] as String
           ..lastTalked = lastTalked;
       }).toList();

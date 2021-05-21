@@ -54,7 +54,7 @@ class _BubbleWidgetState extends State<BubbleWidget> {
           child: Container(
             padding: EdgeInsets.all(12),
             child: Text(
-              b.author.name[0],
+              b.author.name?[0] ?? '?',
               style: TextStyle(
                 fontSize: 18,
               ),

@@ -10,15 +10,17 @@ const lastTalkedThreshold = Duration(days: 7);
 final timeFormat = DateFormat.Hm(AppLocale);
 
 class UserListWidget extends StatelessWidget {
-  final List<User> users;
+  final List<User>? users;
 
   UserListWidget(this.users);
 
   @override
   Widget build(BuildContext context) {
-    final activeUsers = users.where((user) =>
-        user.lastTalked != null &&
-        DateTime.now().difference(user.lastTalked!) < lastTalkedThreshold);
+    final activeUsers = users?.where((user) =>
+            user.lastTalked != null &&
+            DateTime.now().difference(user.lastTalked!) <
+                lastTalkedThreshold) ??
+        [];
     return Container(
         padding: EdgeInsets.all(16),
         color: Colors.white,
@@ -30,7 +32,7 @@ class UserListWidget extends StatelessWidget {
                 padding: EdgeInsets.all(8),
                 child: Row(
                   children: [
-                    Text(user.name),
+                    Text(user.name ?? '?'),
                     if (user.timezone != null) ...[
                       SizedBox(width: 16),
                       if (user.timezone != null) LocalTimeWidget(user.timezone!)
