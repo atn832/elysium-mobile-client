@@ -145,6 +145,9 @@ class ChatService {
   }
 
   Future<void> sendMessage(String message, [DateTime? now]) async {
+    if (message.trim().isEmpty) {
+      return;
+    }
     final timestamp = now ?? DateTime.now();
     final Map<String, dynamic> data = {
       'uid': myUid,
