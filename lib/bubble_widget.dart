@@ -85,36 +85,62 @@ class _BubbleWidgetState extends State<BubbleWidget> {
   }
 }
 
+final cache = Map<String, List<Address>?>();
+
+extension on Coordinates {
+  String get toCacheKey => toString();
+}
+
 class PositionWidget extends StatelessWidget {
   final Position position;
 
   PositionWidget(this.position);
 
+  toKey(Coordinates coordinates) => coordinates.toString();
+
   @override
   Widget build(BuildContext context) {
     final coordinates = Coordinates(position.latitude, position.longitude);
+    if (cache.containsKey(coordinates.toCacheKey)) {
+      final addresses = cache[coordinates.toCacheKey];
+      return SynchronousPositionWidget(coordinates, addresses);
+    }
     return FutureBuilder<List<Address>>(
-        future: Geocoder.local.findAddressesFromCoordinates(coordinates),
+        future: Future.delayed(Duration(seconds: 1)).then(
+            (_) => Geocoder.local.findAddressesFromCoordinates(coordinates)),
         builder: (context, snapshot) {
           if (snapshot.connectionState != ConnectionState.done) {
             return Expanded(child: LinearProgressIndicator());
           }
           final addresses = snapshot.data;
-          if (addresses == null || addresses.isEmpty) {
-            return Text(coordinates.latitude.toStringAsFixed(2) +
-                ', ' +
-                coordinates.longitude.toStringAsFixed(2));
-          }
-          final address = addresses.first;
-          print(address.toMap());
-          final components = [
-            address.subLocality,
-            address.locality,
-            address.subAdminArea,
-            address.adminArea,
-          ].where((/* geocoder's Strings are nullable */ String? element) =>
-              element != null && element.isNotEmpty);
-          return Text(components.join(', '));
+          cache[coordinates.toCacheKey] = addresses;
+          return SynchronousPositionWidget(coordinates, addresses);
         });
+  }
+}
+
+class SynchronousPositionWidget extends StatelessWidget {
+  SynchronousPositionWidget(this.coordinates, this.addresses);
+
+  final Coordinates coordinates;
+  final List<Address>? addresses;
+
+  @override
+  Widget build(BuildContext context) {
+    if (addresses == null || addresses!.isEmpty) {
+      return Text(coordinates.latitude.toStringAsFixed(2) +
+          ', ' +
+          coordinates.longitude.toStringAsFixed(2));
+    }
+    final address = addresses!.first;
+    print(address.toMap());
+    final components = [
+      address.subLocality,
+      address.locality,
+      address.subAdminArea,
+      address.adminArea,
+    ].where((/* geocoder's Strings are nullable */ String? element) =>
+        element != null && element.isNotEmpty);
+    return Text(components.join(', '));
   }
 }

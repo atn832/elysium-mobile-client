@@ -18,7 +18,8 @@ class BubbleService {
         bubbles.last.messages.add(message);
       }
       // Update the position if present.
-      if (message.position != null) {
+      // Make the bubble use the first message's position to prevent flickering.
+      if (message.position != null && bubbles.last.position == null) {
         bubbles.last.position = message.position;
       }
     }

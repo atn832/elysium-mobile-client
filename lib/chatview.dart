@@ -28,25 +28,18 @@ class ChatView extends StatefulWidget {
   }
 }
 
-class _ChatViewState extends State<ChatView> with WidgetsBindingObserver {
+class _ChatViewState extends State<ChatView> {
   ScrollController _controller = ScrollController();
-  bool stickToBottom = true;
 
   @override
   void initState() {
     maybeSendSharedData();
-    WidgetsBinding.instance?.addObserver(this);
-    // Update stickToBottom flag.
-    _controller.addListener(() {
-      stickToBottom = _controller.position.extentAfter == 0;
-    });
     super.initState();
   }
 
   @override
   void dispose() {
     super.dispose();
-    WidgetsBinding.instance?.removeObserver(this);
   }
 
   @override
@@ -98,24 +91,19 @@ class _ChatViewState extends State<ChatView> with WidgetsBindingObserver {
                   ),
                 );
               default:
-                // Scroll down on redraw.
-                if (stickToBottom) {
-                  WidgetsBinding.instance
-                      ?.addPostFrameCallback((Duration timeStamp) {
-                    scrollDown();
-                  });
-                }
-                final bubbles = BubbleService.getBubbles(snapshot.data);
+                final bubbles =
+                    BubbleService.getBubbles(snapshot.data).reversed.toList();
                 return Expanded(
                     child: ListView.builder(
                         controller: _controller,
+                        reverse: true,
                         itemCount: bubbles.length + 1,
                         itemBuilder: (BuildContext context, int index) {
-                          if (index == 0) {
+                          if (index == bubbles.length) {
                             return GetMoreButton(service);
                           }
                           return Container(
-                              child: BubbleWidget(bubbles[index - 1]),
+                              child: BubbleWidget(bubbles[index]),
                               padding: EdgeInsets.symmetric(horizontal: 16));
                         }));
             }
@@ -126,10 +114,6 @@ class _ChatViewState extends State<ChatView> with WidgetsBindingObserver {
         child: MessageInput(widget._service),
       ),
     ]);
-  }
-
-  scrollDown() {
-    _controller.jumpTo(_controller.position.maxScrollExtent);
   }
 
   Future<String?> getSharedText() async {
